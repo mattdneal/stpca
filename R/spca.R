@@ -1,6 +1,22 @@
+#' Performs SPCA
+#'
+#' @param X Data
+#' @param k Latent dimensionality
+#' @param locations the coordinates of each dimenion in X
+#' @param covar.fn covariance function to generate K_\beta
+#' @param covar.fn.d gradient of the covariance function with respect to hyperparameters
+#' @param beta0 initial hyperparameters
+#' @param trace amount of reporting. 0=none, 1=low, 2=high
+#' @param report_iter Number of iterations between reports
+#' @param max.dist Maximum distance between features to consider
+#' @param maxit number of inner iterations
+#' @param maxit.outer number of outer iterations
+#' @return An \code{spca} object.
+#' @export
+#' @include util.R
 spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  trace=0, report_iter=10, max.dist=Inf,
-                 maxit=20, maxit.outer=5, tol=1e-2) {
+                 maxit=20, maxit.outer=5) {
 
   ## Define commonly used variables.
   Xc = scale(X, scale=FALSE) # Centered data: nxd
@@ -187,8 +203,10 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   return(spcaObj)
 }
 
+#' Does not yet work with 'new' SPCA architecture
 spca.continue <- function(spcaObj, trace=0, report_iter=10, max.dist=Inf,
                           maxit=10, tol=1e-2, ucminf.control=list()) {
+  stop("Does not yet work with 'new' SPCA architecture")
   newPrcaObj = spca(X=spcaObj$X, k=ncol(spcaObj$W), locations=spcaObj$locations,
                     covar.fn=spcaObj$covar.fn, covar.fn.d=spcaObj$covar.fn.d,
                     beta0=spcaObj$beta, trace=trace, report_iter=report_iter,
@@ -197,6 +215,14 @@ spca.continue <- function(spcaObj, trace=0, report_iter=10, max.dist=Inf,
   return(newPrcaObj)
 }
 
+#' Calculate the log likelihood for SPCA with given parameters
+#'
+#' @param X Data
+#' @param W
+#' @param mu
+#' @param sigSq
+#' @return log likelihood (numeric)
+#' @export
 spca.log_likelihood <- function(X, W, mu, sigSq) {
   if (is.vector(X)) {X = matrix(X, nrow=1)}
 
@@ -216,6 +242,12 @@ spca.log_likelihood <- function(X, W, mu, sigSq) {
   return(-0.5*(const + nLogDetC + trXCinvXt))
 }
 
+#' Calculate the *un-normalised* log prior for SPCA with given loadings matrix
+#'
+#' @param K Prior covariance matrix
+#' @param W Loadings matrix
+#' @return un-normalised log prior (numeric)
+#' @export
 spca.log_prior <- function(K, W) {
   d = nrow(W)
   k = ncol(W)
@@ -252,10 +284,25 @@ spca.log_prior <- function(K, W) {
                 trWtKinvW))
 }
 
+#' Calculate the *un-normalised* log posterior for SPCA with given parameters
+#'
+#' @param X Data
+#' @param K Prior covariance matrix
+#' @param W Loadings matrix
+#' @param mu
+#' @param sigSq
+#' @return un-normalised log posterior (numeric)
+#' @export
 spca.log_posterior <- function(X, K, W, mu, sigSq) {
   return(spca.log_likelihood(X, W, mu, sigSq) + spca.log_prior(K, W));
 }
 
+#' De-noise a sample using a trained \code{spca} object.
+#'
+#' @param spcaObj An \code{spca} object returned from a call to \code{spca}
+#' @param samples samples to de-noise
+#' @return De-noised samples of the same dimensionality as the parameter \code{samples}
+#' @export
 predict.spca <- function(spcaObj, samples) {
   if (missing(samples)) {
     return(spcaObj$V)
@@ -275,14 +322,21 @@ predict.spca <- function(spcaObj, samples) {
   return(proj)
 }
 
+#' Compute the laplace approximation to the log evidence given the MAP
+#' parameters K, mu, sigSq as well as the prior covariance matrix K.
+#' Note that this is multiplied by an UN-KNOWN CONSTANT due to the flat
+#' priors over mu and sigSq. However, this unknown constant is always
+#' the same regardless of k and K, so this may be used to compute
+#' meaningful bayes factors between SPCA models.
+#'
+#' @param X Data
+#' @param K Prior covariance matrix
+#' @param W Loadings matrix
+#' @param mu
+#' @param sigSq
+#' @return Approximate log evidence
+#' @export
 spca.log_evidence <- function(X, K, W, mu, sigSq) {
-  #' Compute the laplace approximation to the log evidence given the MAP
-  #' parameters K, mu, sigSq as well as the prior covariance matrix K.
-  #' Note that this is multiplied by an UN-KNOWN CONSTANT due to the flat
-  #' priors over mu and sigSq. However, this unknown constant is always
-  #' the same regardless of k and K, so this may be used to compute
-  #' meaningful bayes factors between SPCA models.
-
   if (is(X, "spca")) {
     spcaObj = X
     X = spcaObj$X
@@ -357,6 +411,19 @@ spca.log_evidence <- function(X, K, W, mu, sigSq) {
   return(logZ)
 }
 
+#' Compute bayes factor
+#'
+#' @param X Data
+#' @param K1
+#' @param W1
+#' @param mu1
+#' @param sigSq1
+#' @param K2
+#' @param W2
+#' @param mu2
+#' @param sigSq2
+#' @return Log bayes factor; model 1 is numerator
+#' @export
 spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
   only2argsspecified = (!missing(X) & !missing(K1) & missing(W1) & missing(mu1)
                         & missing(sigSq1) & missing(K2) & missing(W2)
