@@ -1,4 +1,17 @@
-This is the R package for Structured PCA.
-
-Author: Jim Skinner
-Website: www.warwick.ac.uk/jskinner
+Package: spca
+Title: Structured PCA
+Version: 0.1
+Authors@R: person("Jim", "Skinner", email = "j.r.skinner@warwick.ac.uk",
+                  role = c("aut", "cre"))
+Description: R package for SPCA. A linear latent variable model similar to PPCA
+  but with a user-specified prior on the covariance structure of each column of
+  the loadings matrix. Supports tools for model selection.
+Depends: R (>= 3.1.0)
+License: MIT
+LazyData: true
+Imports: fields,
+         gsl,
+         igraph,
+         Matrix,
+         numDeriv,
+         optimx
