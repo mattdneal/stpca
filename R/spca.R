@@ -113,7 +113,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
           return(as.vector(Matrix::solve(Kc, C.tilde[,i_], system="A")))
         } else {
           KplusDiag       = K
-          diag(KplusDiag) = diag(KplusDiag) + sigSq*vvsuminv.eig$values[i_]
+          Matrix::diag(KplusDiag) = Matrix::diag(KplusDiag) + sigSq*vvsuminv.eig$values[i_]
           return(as.vector(Matrix::solve(KplusDiag, C.tilde[,i_])))
         }
       }, numeric(d))

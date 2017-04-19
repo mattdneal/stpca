@@ -7,7 +7,7 @@ cov.exp <- function(X, X2, beta, D=NA, ...) {
     D = distanceMatrix(X, X2)
   }
   D@x = exp(beta[1]) * exp(-(D@x^2)/(2*exp(beta[2])^2))
-  diag(D) = diag(D)+1e-9
+  Matrix::diag(D) = Matrix::diag(D)+1e-9
   return(D)
 }
 
