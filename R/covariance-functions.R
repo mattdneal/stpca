@@ -24,11 +24,11 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 
 #' Rational quadratic covariance function
 #' @export
-cov.RQ <- function(X, beta, ...) {
+cov.RQ <- function(X, beta, D=NA, ...) {
   # beta[1] log(sigma^2)
   # beta[2] log(lengthScale)
   # beta[3] log(alpha)
-  D   = distanceMatrix(X)
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   D@x = exp(beta[1])*(1+(D@x^2)/(2*(exp(beta[2])^2)*exp(beta[3])))^(-exp(beta[3]))
   return(D)
 }
