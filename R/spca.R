@@ -153,11 +153,11 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       min.f = function(beta_) {
         K_ = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
         if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) { browser() }
-        return(spca.log_evidence(X, K_, W, mu, sigSq))
+        return(-spca.log_evidence(X, K_, W, mu, sigSq))
       }
       optObj = optimx(par=beta, fn=min.f, method="Nelder-Mead", control=list(
         kkt=FALSE, starttests=FALSE, usenumDeriv=TRUE, all.methods=FALSE,
-        maximize=TRUE, trace=0, dowarn=FALSE
+        maximize=FALSE, trace=0, dowarn=FALSE
       ))
       beta = coef(optObj)
       K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
