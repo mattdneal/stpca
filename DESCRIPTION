@@ -9,14 +9,9 @@ Description: R package for SPCA. A linear latent variable model similar to PPCA
 Depends: R (>= 3.1.0)
 License: MIT
 LazyData: true
-Imports: fields,
-         gsl,
-         igraph,
-         Matrix,
-         numDeriv,
-         optimx
-Collate: 
+Collate:
     'util.R'
     'covariance-functions.R'
     'spca.R'
+Imports: fields, gsl, igraph, Matrix, numDeriv, optimx
 RoxygenNote: 6.0.1.9000

@@ -1,7 +1,8 @@
-#' @include util.R
 
 #' Squared exponential covariance function
 #' @export
+#' @include util.R
+#' @import Matrix
 cov.SE <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
@@ -13,6 +14,8 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
 
 #' Squared exponential covariance function partial derivatives wrt hyperparameters
 #' @export
+#' @include util.R
+#' @import Matrix
 cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
@@ -24,6 +27,8 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 
 #' Rational quadratic covariance function
 #' @export
+#' @include util.R
+#' @import Matrix
 cov.RQ <- function(X, beta, D=NA, ...) {
   # beta[1] log(sigma^2)
   # beta[2] log(lengthScale)

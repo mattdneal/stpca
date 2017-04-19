@@ -14,6 +14,7 @@
 #' @return An \code{spca} object.
 #' @export
 #' @include util.R
+#' @import optimx
 spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  trace=0, report_iter=10, max.dist=Inf,
                  maxit=20, maxit.outer=5) {
@@ -294,7 +295,7 @@ spca.log_prior <- function(K, W) {
 #' @return un-normalised log posterior (numeric)
 #' @export
 spca.log_posterior <- function(X, K, W, mu, sigSq) {
-  return(spca.log_likelihood(X, W, mu, sigSq) + spca.log_prior(K, W));
+  return(spca.log_likelihood(X, W, mu, sigSq) + spca.log_prior(K, W))
 }
 
 #' De-noise a sample using a trained \code{spca} object.

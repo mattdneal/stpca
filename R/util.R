@@ -1,3 +1,5 @@
+#' @import Matrix
+#' @import fields
 distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
   stopifnot(!(all(is.na(nrow(X)))))
 
