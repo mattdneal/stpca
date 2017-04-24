@@ -1,6 +1,8 @@
 Package: spca
 Title: Structured PCA
 Version: 0.1
+Author: Jim Skinner <j.r.skinner@warwick.ac.uk>
+Maintainer: Jim Skinner <j.r.skinner@warwick.ac.uk>
 Authors@R: person("Jim", "Skinner", email = "j.r.skinner@warwick.ac.uk",
                   role = c("aut", "cre"))
 Description: R package for SPCA. A linear latent variable model similar to PPCA
@@ -9,9 +11,10 @@ Description: R package for SPCA. A linear latent variable model similar to PPCA
 Depends: R (>= 3.1.0)
 License: MIT
 LazyData: true
-Collate:
+Collate: 
     'util.R'
     'covariance-functions.R'
+    'evidence-approximation.R'
     'spca.R'
 Imports: fields, gsl, igraph, Matrix, numDeriv, optimx
 RoxygenNote: 6.0.1.9000
