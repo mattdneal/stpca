@@ -12,7 +12,7 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
   return(D)
 }
 
-#' Squared exponential covariance function partial derivatives wrt hyperparameters
+#' Squared exponential covariance function derivatives wrt hyperparameters
 #' @export
 #' @include util.R
 #' @import Matrix
@@ -20,7 +20,7 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  dK1 = cov.SE(X, X2, beta)
+  dK1 = cov.SE(X, X2, beta, D=D)
   dK2 = (D^2)*exp(-2*beta[2]) * dK1
   return(list(dK1, dK2))
 }
