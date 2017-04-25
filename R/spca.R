@@ -14,7 +14,26 @@
 #' @return An \code{spca} object.
 #' @export
 #' @include util.R
-#' @import optimx
+#' @include evidence-approximation.R
+#' @import gsl
+#' @import fields
+#' @examples
+#' library(fields)
+#' data(ozone2) # TODO: Get rid of dependancy on fields package
+#'
+#' # Missing data: Replace missing values by column means
+#' X = ozone2$y
+#' for (col in 1:ncol(X)) {
+#'   ind = is.na(X[,col])
+#'   X[ind,col] = mean(X[,col], na.rm=TRUE)
+#' }
+#' X = X/sd(X) # Scale for numerical reasons
+#'
+#' locations = ozone2$lon.lat
+#' locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
+#'
+#' model.spca = spca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
+#'                   maxit=20, maxit.outer=3, trace=0)
 spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  trace=0, report_iter=10, max.dist=Inf,
                  maxit=20, maxit.outer=5) {
@@ -155,11 +174,23 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
         if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) { browser() }
         return(-spca.log_evidence(X, K_, W, mu, sigSq))
       }
-      optObj = optimx(par=beta, fn=min.f, method="Nelder-Mead", control=list(
-        kkt=FALSE, starttests=FALSE, usenumDeriv=TRUE, all.methods=FALSE,
-        maximize=FALSE, trace=0, dowarn=FALSE
-      ))
-      beta = coef(optObj)
+
+      #optObj = optimx(par=beta, fn=min.f, method="Nelder-Mead", control=list(
+      #  kkt=FALSE, starttests=FALSE, usenumDeriv=TRUE, all.methods=FALSE,
+      #  maximize=FALSE, trace=0, dowarn=FALSE
+      #))
+
+      ## New version
+      min.fdf = min.f.generator(X, W, mu, sigSq, locations, covar.fn, covar.fn.d, D=D)
+      min.f   = function(beta_) {min.fdf(beta_)$f}
+      min.df  = function(beta_) {min.fdf(beta_)$df}
+
+      optObj2.init = suppressWarnings(multimin.init(x=beta, fdf=min.fdf,
+                                      f=min.f, df=min.df, method="bfgs"))
+      optObj2      = multimin.iterate(optObj2.init)
+
+      #beta = coef(optObj)
+      beta = optObj2$x
       K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
 
       if (trace>=1) { print(paste("  New beta:", paste(beta, collapse=','))) }
@@ -323,131 +354,6 @@ predict.spca <- function(spcaObj, samples) {
   return(proj)
 }
 
-#' Compute the laplace approximation to the log evidence given the MAP
-#' parameters K, mu, sigSq as well as the prior covariance matrix K.
-#' Note that this is multiplied by an UN-KNOWN CONSTANT due to the flat
-#' priors over mu and sigSq. However, this unknown constant is always
-#' the same regardless of k and K, so this may be used to compute
-#' meaningful bayes factors between SPCA models.
-#'
-#' @param X Data
-#' @param K Prior covariance matrix
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
-#' @return Approximate log evidence
-#' @export
-spca.log_evidence <- function(X, K, W, mu, sigSq) {
-  if (is(X, "spca")) {
-    spcaObj = X
-    X = spcaObj$X
-    K = spcaObj$K
-    W = spcaObj$W
-    mu = spcaObj$mu
-    sigSq = spcaObj$sigSq
-  }
-
-  n = nrow(X)
-  d = ncol(X)
-  k = ncol(W)
-
-  # Centered X
-  Xc = sweep(X, 2, mu)
-
-  # Compute C^{-1}, which is used all over the place
-  R = Matrix::chol(crossprod(W) + sigSq*diag(k))
-  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
-
-  logDetH = 0
-
-  # Compute each of the blocks of H corresponding to each w_i, and the log
-  # determinant of this block to the comulative log determinant
-  for (i in 1:k) {
-    # This way is empirically better. Not sure why.
-    Hw = Matrix(solve(K) + # TODO: I can compute the determinant of theis block without inverting K :D
-                Cinv*as.numeric(W[,i]%*%Cinv%*%t(Xc)%*%Xc%*%Cinv%*%W[,i] -
-                                n*W[,i]%*%Cinv%*%W[,i] + n) +
-                Cinv%*%(
-                  t(Xc)%*%Xc%*%Cinv%*%W[,i,drop=F]%*%t(W[,i,drop=F]) +
-                  W[,i,drop=F]%*%t(W[,i,drop=F])%*%Cinv%*%t(Xc)%*%Xc +
-                  as.numeric(W[,i]%*%Cinv%*%W[,i] - 1)*t(Xc)%*%Xc -
-                  n*W[,i,drop=F]%*%t(W[,i,drop=F])
-                )%*%Cinv, forceCheck=TRUE)
-    logDetH = logDetH + as.numeric(determinant(Hw, logarithm=TRUE)$modulus)
-
-    #wBlockTimesK = Matrix(
-    #  Diagonal(d) +
-    #  K%*%Cinv*as.numeric(W[,i]%*%Cinv%*%t(Xc)%*%Xc%*%Cinv%*%W[,i] -
-    #                      n*W[,i]%*%Cinv%*%W[,i] + n) +
-    #  K%*%Cinv%*%(
-    #    t(Xc)%*%Xc%*%Cinv%*%W[,i,drop=F]%*%t(W[,i,drop=F]) +
-    #    W[,i,drop=F]%*%t(W[,i,drop=F])%*%Cinv%*%t(Xc)%*%Xc +
-    #    as.numeric(W[,i]%*%Cinv%*%W[,i] - 1)*t(Xc)%*%Xc -
-    #    n*W[,i,drop=F]%*%t(W[,i,drop=F])
-    #  )%*%Cinv
-    #, forceCheck=TRUE)
-
-    #logBlockDet = as.numeric(determinant(wBlockTimesK, logarithm=TRUE)$modulus
-    #                         - determinant(K, logarithm=TRUE)$modulus)
-    #logDetH = logDetH + logBlockDet
-    #browser() # TODO: Only need to compute det(K) once
-  }
-
-  # Compute the mu block of H, add the log det to the cumulative total
-  HmuLogDet = as.numeric(determinant(n*Cinv, logarithm=TRUE)$modulus)
-  logDetH   = logDetH + HmuLogDet
-
-  # Compute the sigSq block of H & add log det to cumulative total
-  tmp = (sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
-                     0.5*n*sum(diag(Cinv%*%Cinv)))
-  if (tmp<=0) {browser()}
-  HsigSqLogDet = log(sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
-                     0.5*n*sum(diag(Cinv%*%Cinv)))
-  logDetH      = logDetH + HsigSqLogDet
-
-  # Laplace-approximated log evidence
-  logZ = (spca.log_posterior(X, K, W, mu, sigSq) +
-          (0.5*(d*k+d+1))*log(2*pi) -
-          0.5*logDetH)
-  return(logZ)
-}
-
-#' Compute bayes factor
-#'
-#' @param X Data
-#' @param K1
-#' @param W1
-#' @param mu1
-#' @param sigSq1
-#' @param K2
-#' @param W2
-#' @param mu2
-#' @param sigSq2
-#' @return Log bayes factor; model 1 is numerator
-#' @export
-spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
-  only2argsspecified = (!missing(X) & !missing(K1) & missing(W1) & missing(mu1)
-                        & missing(sigSq1) & missing(K2) & missing(W2)
-                        & missing(mu2) & missing(sigSq2))
-
-  if(only2argsspecified) {
-    model1 = X
-    model2 = K1
-
-    X1     = model1$X
-    K1     = model1$K
-    W1     = model1$W
-    mu1    = model1$mu
-    sigSq1 = model1$sigSq
-
-    X2     = model2$X
-    K2     = model2$K
-    W2     = model2$W
-    mu2    = model2$mu
-    sigSq2 = model2$sigSq
-  }
-
-  ev1 = spca.log_evidence(X1, K1, W1, mu1, sigSq1)
-  ev2 = spca.log_evidence(X2, K2, W2, mu2, sigSq2)
-  return(ev1-ev2)
+spca.simulate <- function(spcaObj, n=1) {
+  stop("Implement me!")
 }
