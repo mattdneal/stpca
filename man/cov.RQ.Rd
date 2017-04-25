@@ -9,3 +9,19 @@ cov.RQ(X, beta, D = NA, ...)
 \description{
 Rational quadratic covariance function
 }
+\examples{
+locs = matrix(c(0, 1.5), ncol=1)
+beta = c(2, 0.5, 1.5)
+
+# Numerical gradients
+grad.num  = numDeriv::grad(function(beta_) {
+  cov.RQ(locs, beta_)[1,2]
+}, beta)
+
+# Analytic gradients
+grads = cov.RQ.d(locs, beta)
+grad.real = vapply(1:3, function(i) grads[[i]][1,2], numeric(1))
+
+# Results are the same
+stopifnot(all.equal(grad.num, grad.real))
+}

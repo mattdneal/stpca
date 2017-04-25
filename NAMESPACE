@@ -2,6 +2,7 @@
 
 S3method(predict,spca)
 export(cov.RQ)
+export(cov.RQ.d)
 export(cov.SE)
 export(cov.SE.d)
 export(spca)
@@ -13,3 +14,4 @@ export(spca.log_prior)
 import(Matrix)
 import(fields)
 import(gsl)
+import(numDeriv)

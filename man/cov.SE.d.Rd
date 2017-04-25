@@ -2,10 +2,10 @@
 % Please edit documentation in R/covariance-functions.R
 \name{cov.SE.d}
 \alias{cov.SE.d}
-\title{Squared exponential covariance function partial derivatives wrt hyperparameters}
+\title{Squared exponential covariance function derivatives wrt hyperparameters}
 \usage{
 cov.SE.d(X, X2, beta, D = NA, ...)
 }
 \description{
-Squared exponential covariance function partial derivatives wrt hyperparameters
+Squared exponential covariance function derivatives wrt hyperparameters
 }

@@ -16,5 +16,5 @@ Collate:
     'covariance-functions.R'
     'evidence-approximation.R'
     'spca.R'
-Imports: fields, gsl, Matrix
+Imports: fields, gsl, Matrix, numDeriv
 RoxygenNote: 6.0.1.9000
