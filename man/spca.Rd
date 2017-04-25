@@ -14,7 +14,7 @@ spca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(), trace = 0,
 
 \item{locations}{the coordinates of each dimenion in X}
 
-\item{covar.fn}{covariance function to generate K_\beta}
+\item{covar.fn}{covariance function to generate K_beta}
 
 \item{covar.fn.d}{gradient of the covariance function with respect to hyperparameters}
 
@@ -35,4 +35,22 @@ An \code{spca} object.
 }
 \description{
 Performs SPCA
+}
+\examples{
+library(fields)
+data(ozone2) # TODO: Get rid of dependancy on fields package
+
+# Missing data: Replace missing values by column means
+X = ozone2$y
+for (col in 1:ncol(X)) {
+  ind = is.na(X[,col])
+  X[ind,col] = mean(X[,col], na.rm=TRUE)
+}
+X = X/sd(X) # Scale for numerical reasons
+
+locations = ozone2$lon.lat
+locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
+
+model.spca = spca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
+                  maxit=20, maxit.outer=3, trace=0)
 }
