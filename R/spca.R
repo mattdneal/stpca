@@ -3,7 +3,7 @@
 #' @param X Data
 #' @param k Latent dimensionality
 #' @param locations the coordinates of each dimenion in X
-#' @param covar.fn covariance function to generate K_\beta
+#' @param covar.fn covariance function to generate K_beta
 #' @param covar.fn.d gradient of the covariance function with respect to hyperparameters
 #' @param beta0 initial hyperparameters
 #' @param trace amount of reporting. 0=none, 1=low, 2=high
