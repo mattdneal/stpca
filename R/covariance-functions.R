@@ -20,12 +20,40 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
 #' @export
 #' @include util.R
 #' @import Matrix
+#' @examples
+#'point1 = matrix(rnorm(1), ncol=1)
+#'point2 = matrix(rnorm(1), ncol=1)
+#'beta   = rnorm(2) # Logarithms of variance and length scale
+#'
+#'Ks.1point = cov.SE.d(point1, beta=beta)
+#'
+#'# Derivative wrt variance at zero distance should always be exp(beta[1])
+#'stopifnot(all.equal(Ks.1point[[1]][1,1], exp(beta[1])))
+#'
+#'# Derivative wrt lengthscale at zero distance should always be 0
+#'stopifnot(all.equal(Ks.1point[[2]][1,1], 0))
+#'
+#'# Identical tests with numerical gradient
+#'Ks.1point.num = grad(function(beta_) {
+#'  as.numeric(cov.SE(point1, beta=beta_))
+#'}, x=beta)
+#'stopifnot(all.equal(Ks.1point.num[1], exp(beta[1])))
+#'stopifnot(all.equal(Ks.1point.num[2], 0))
+#'
+#'Ks.2points = cov.SE.d(point1, point2, beta=beta)
+#'Ks.2points.num = grad(function(beta_) {
+#'  as.numeric(cov.SE(point1, point2, beta=beta_))
+#'}, x=beta)
+#'
+#'# Check numerical gradient equals analytic gradient
+#'stopifnot(all.equal(as.numeric(Ks.2points[[1]]), Ks.2points.num[1]))
+#'stopifnot(all.equal(as.numeric(Ks.2points[[2]]), Ks.2points.num[2]))
 cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  dK1 = cov.SE(X, X2, beta, D=D)
-  dK2 = (D^2)*exp(-2*beta[2]) * dK1
+  dK1 = exp(beta[1])*exp(-0.5*(D^2)*exp(-2*beta[2]))
+  dK2 = exp(beta[2])*(D^2)*exp(-3*beta[2]) * dK1
   return(list(dK1, dK2))
 }
 
