@@ -11,8 +11,8 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  D@x = exp(beta[1]) * exp(-(D@x^2)/(2*exp(beta[2])^2))
-  Matrix::diag(D) = Matrix::diag(D)+1e-9
+  D@x = exp(beta[1]) * exp(-0.5*(D@x^2)*exp(-2*beta[2]))
+  #Matrix::diag(D) = Matrix::diag(D)+1e-12
   return(D)
 }
 
