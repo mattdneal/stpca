@@ -9,3 +9,9 @@ cov.SE(X, X2, beta, D = NA, ...)
 \description{
 Squared exponential covariance function
 }
+\examples{
+grid = matrix(1:10, ncol=1)
+beta = rnorm(2)
+K    = cov.SE(grid, beta=beta)
+stopifnot(all(diag(K)==exp(beta[1])))
+}
