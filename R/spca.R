@@ -335,7 +335,7 @@ spca.log_posterior <- function(X, K, W, mu, sigSq) {
 #' @param samples samples to de-noise
 #' @return De-noised samples of the same dimensionality as the parameter \code{samples}
 #' @export
-predict.spca <- function(spcaObj, samples) {
+predict.spca <- function(object, samples) {
   if (missing(samples)) {
     return(spcaObj$V)
   }
