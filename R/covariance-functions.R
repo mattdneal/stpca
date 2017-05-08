@@ -6,12 +6,13 @@
 #' grid = matrix(1:10, ncol=1)
 #' beta = rnorm(2)
 #' K    = cov.SE(grid, beta=beta)
-#' stopifnot(all(diag(K)==exp(beta[1])))
+#' stopifnot(all(Matrix::diag(K)==exp(beta[1])))
 cov.SE <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  D@x = exp(beta[1]) * exp(-0.5*(D@x^2)*exp(-2*beta[2]))
+  #D@x = exp(beta[1]) * exp(-0.5*(D@x^2)*exp(-2*beta[2]))
+  D = exp(beta[1]) * exp(-0.5*(D^2)*exp(-2*beta[2]))
   #Matrix::diag(D) = Matrix::diag(D)+1e-12
   return(D)
 }
@@ -20,34 +21,36 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
 #' @export
 #' @include util.R
 #' @import Matrix
+#' @import numDeriv
 #' @examples
-#'point1 = matrix(rnorm(1), ncol=1)
-#'point2 = matrix(rnorm(1), ncol=1)
-#'beta   = rnorm(2) # Logarithms of variance and length scale
+#' point1 = matrix(rnorm(1), ncol=1)
+#' point2 = matrix(rnorm(1), ncol=1)
+#' beta   = rnorm(2) # Logarithms of variance and length scale
 #'
-#'Ks.1point = cov.SE.d(point1, beta=beta)
+#' Ks.1point = cov.SE.d(point1, beta=beta)
 #'
-#'# Derivative wrt variance at zero distance should always be exp(beta[1])
-#'stopifnot(all.equal(Ks.1point[[1]][1,1], exp(beta[1])))
+#' # Derivative wrt variance at zero distance should always be exp(beta[1])
+#' stopifnot(all.equal(Ks.1point[[1]][1,1], exp(beta[1])))
 #'
-#'# Derivative wrt lengthscale at zero distance should always be 0
-#'stopifnot(all.equal(Ks.1point[[2]][1,1], 0))
+#' # Derivative wrt lengthscale at zero distance should always be 0
+#' stopifnot(all.equal(Ks.1point[[2]][1,1], 0))
 #'
-#'# Identical tests with numerical gradient
-#'Ks.1point.num = grad(function(beta_) {
-#'  as.numeric(cov.SE(point1, beta=beta_))
-#'}, x=beta)
-#'stopifnot(all.equal(Ks.1point.num[1], exp(beta[1])))
-#'stopifnot(all.equal(Ks.1point.num[2], 0))
+#' # Identical tests with numerical gradient
+#' library(numDeriv)
+#' Ks.1point.num = grad(function(beta_) {
+#'   cov.SE(point1, beta=beta_)[1,1]
+#' }, x=beta)
+#' stopifnot(all.equal(Ks.1point.num[1], exp(beta[1])))
+#' stopifnot(all.equal(Ks.1point.num[2], 0))
 #'
-#'Ks.2points = cov.SE.d(point1, point2, beta=beta)
-#'Ks.2points.num = grad(function(beta_) {
-#'  as.numeric(cov.SE(point1, point2, beta=beta_))
-#'}, x=beta)
+#' Ks.2points = cov.SE.d(point1, point2, beta=beta)
+#' Ks.2points.num = grad(function(beta_) {
+#'   as.numeric(cov.SE(point1, point2, beta=beta_))
+#' }, x=beta)
 #'
-#'# Check numerical gradient equals analytic gradient
-#'stopifnot(all.equal(as.numeric(Ks.2points[[1]]), Ks.2points.num[1]))
-#'stopifnot(all.equal(as.numeric(Ks.2points[[2]]), Ks.2points.num[2]))
+#' # Check numerical gradient equals analytic gradient
+#' stopifnot(all.equal(as.numeric(Ks.2points[[1]]), Ks.2points.num[1]))
+#' stopifnot(all.equal(as.numeric(Ks.2points[[2]]), Ks.2points.num[2]))
 cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
@@ -63,28 +66,17 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' @import Matrix
 #' @import numDeriv
 #' @examples
-#' locs = matrix(c(0, 1.5), ncol=1)
-#' beta = c(2, 0.5, 1.5)
+#' locations = matrix(rnorm(10), ncol=2)
+#' beta      = rnorm(3) # Logarithms of variance, length scale & alpha
 #'
-#' # Numerical gradients
-#' grad.num  = numDeriv::grad(function(beta_) {
-#'   cov.RQ(locs, beta_)[1,2]
-#' }, beta)
-#'
-#' # Analytic gradients
-#' grads = cov.RQ.d(locs, beta)
-#' grad.real = vapply(1:3, function(i) grads[[i]][1,2], numeric(1))
-#'
-#' # Results are the same
-#' stopifnot(all.equal(grad.num, grad.real))
-cov.RQ <- function(X, beta, D=NA, ...) {
-  # beta[1] log(sigma^2)
-  # beta[2] log(lengthScale)
-  # beta[3] log(alpha)
+#' K = cov.RQ(locations, beta=beta)
+#' stopifnot(all(Matrix::diag(K)==exp(beta[1]))) # Diagonal is exp(beta[1])
+#' stopifnot(all(svd(K)$d>0)) # K is positive definite
+#' stopifnot(all(K[upper.tri(K)]<K[1,1])) # Largest element is on diagonal
+cov.RQ <- function(X, X2, beta, D=NA, ...) {
   stopifnot(length(beta)==3)
-  if (all(is.na(D))) { D = distanceMatrix(X) }
-  #D@x = exp(beta[1])*(1+(D@x^2)/(2*(exp(beta[2])^2)*exp(beta[3])))^(-exp(beta[3]))
-  D@x = exp(beta[1])*(1 + (D@x*D@x)*0.5*exp(-2*beta[2]-beta[3]))^(-exp(beta[3]))
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
+  D = exp(beta[1])*(1 + (D*D)*0.5*exp(-2*beta[2]-beta[3]))^(-exp(beta[3]))
   return(D)
 }
 
@@ -92,9 +84,23 @@ cov.RQ <- function(X, beta, D=NA, ...) {
 #' @export
 #' @include util.R
 #' @import Matrix
-cov.RQ.d <- function(X, beta, D=NA, ...) {
+#' @import numDeriv
+#' @examples
+#' point1 = matrix(rnorm(1), ncol=1)
+#' point2 = matrix(rnorm(1), ncol=1)
+#' beta   = rnorm(3) # Logarithms of variance, length scale & alpha
+#'
+#' library(numDeriv)
+#' Ks.2points = vapply(cov.RQ.d(point1, point2, beta=beta), function(K) {
+#'   K[1,1]
+#' }, numeric(1))
+#' Ks.2points.num = grad(function(beta_) {
+#'   as.numeric(cov.RQ(point1, point2, beta=beta_))
+#' }, x=beta)
+#' stopifnot(all.equal(Ks.2points, Ks.2points.num))
+cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
   stopifnot(length(beta)==3)
-  if (all(is.na(D))) { D = distanceMatrix(X) }
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
 
   # Obtained using R 'grad' function
   .expr1  <- exp(beta[1])
