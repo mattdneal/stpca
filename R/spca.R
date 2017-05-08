@@ -354,6 +354,6 @@ predict.spca <- function(object, samples) {
   return(proj)
 }
 
-spca.simulate <- function(spcaObj, n=1) {
+spca.simulate <- function(object, n=1) {
   stop("Implement me!")
 }
