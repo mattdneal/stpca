@@ -331,26 +331,26 @@ spca.log_posterior <- function(X, K, W, mu, sigSq) {
 
 #' De-noise a sample using a trained \code{spca} object.
 #'
-#' @param spcaObj An \code{spca} object returned from a call to \code{spca}
+#' @param object An \code{spca} object returned from a call to \code{spca}
 #' @param samples samples to de-noise
 #' @return De-noised samples of the same dimensionality as the parameter \code{samples}
 #' @export
 predict.spca <- function(object, samples) {
   if (missing(samples)) {
-    return(spcaObj$V)
+    return(object$V)
   }
 
   stopifnot(is.matrix(samples))
 
-  k     = ncol(spcaObj$W) # Latent dimensionality
-  muMat = matrix(rep(spcaObj$mu, nrow(samples)), nrow=nrow(samples), byrow=TRUE)
+  k     = ncol(object$W) # Latent dimensionality
+  muMat = matrix(rep(object$mu, nrow(samples)), nrow=nrow(samples), byrow=TRUE)
 
   # Latent representation of new samples
-  Mchol  = chol(crossprod(spcaObj$W) + spcaObj$sigSq*diag(k))
-  latent = t(backsolve(Mchol, forwardsolve(t(Mchol), t((samples-muMat)%*%spcaObj$W))))
+  Mchol  = chol(crossprod(object$W) + object$sigSq*diag(k))
+  latent = t(backsolve(Mchol, forwardsolve(t(Mchol), t((samples-muMat)%*%object$W))))
 
   # 'samples' projected onto PrCA model
-  proj = tcrossprod(latent, spcaObj$W) + muMat
+  proj = tcrossprod(latent, object$W) + muMat
   return(proj)
 }
 
