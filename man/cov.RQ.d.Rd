@@ -4,8 +4,22 @@
 \alias{cov.RQ.d}
 \title{Rational quadratic covariance function derivatives wrt hyperparameters}
 \usage{
-cov.RQ.d(X, beta, D = NA, ...)
+cov.RQ.d(X, X2, beta, D = NA, ...)
 }
 \description{
 Rational quadratic covariance function derivatives wrt hyperparameters
+}
+\examples{
+point1 = matrix(rnorm(1), ncol=1)
+point2 = matrix(rnorm(1), ncol=1)
+beta   = rnorm(3) # Logarithms of variance, length scale & alpha
+
+library(numDeriv)
+Ks.2points = vapply(cov.RQ.d(point1, point2, beta=beta), function(K) {
+  K[1,1]
+}, numeric(1))
+Ks.2points.num = grad(function(beta_) {
+  as.numeric(cov.RQ(point1, point2, beta=beta_))
+}, x=beta)
+stopifnot(all.equal(Ks.2points, Ks.2points.num))
 }

@@ -4,24 +4,17 @@
 \alias{cov.RQ}
 \title{Rational quadratic covariance function}
 \usage{
-cov.RQ(X, beta, D = NA, ...)
+cov.RQ(X, X2, beta, D = NA, ...)
 }
 \description{
 Rational quadratic covariance function
 }
 \examples{
-locs = matrix(c(0, 1.5), ncol=1)
-beta = c(2, 0.5, 1.5)
+locations = matrix(rnorm(10), ncol=2)
+beta      = rnorm(3) # Logarithms of variance, length scale & alpha
 
-# Numerical gradients
-grad.num  = numDeriv::grad(function(beta_) {
-  cov.RQ(locs, beta_)[1,2]
-}, beta)
-
-# Analytic gradients
-grads = cov.RQ.d(locs, beta)
-grad.real = vapply(1:3, function(i) grads[[i]][1,2], numeric(1))
-
-# Results are the same
-stopifnot(all.equal(grad.num, grad.real))
+K = cov.RQ(locations, beta=beta)
+stopifnot(all(Matrix::diag(K)==exp(beta[1]))) # Diagonal is exp(beta[1])
+stopifnot(all(svd(K)$d>0)) # K is positive definite
+stopifnot(all(K[upper.tri(K)]<K[1,1])) # Largest element is on diagonal
 }

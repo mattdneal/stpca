@@ -13,5 +13,5 @@ Squared exponential covariance function
 grid = matrix(1:10, ncol=1)
 beta = rnorm(2)
 K    = cov.SE(grid, beta=beta)
-stopifnot(all(diag(K)==exp(beta[1])))
+stopifnot(all(Matrix::diag(K)==exp(beta[1])))
 }

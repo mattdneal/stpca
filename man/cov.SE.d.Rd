@@ -23,15 +23,16 @@ stopifnot(all.equal(Ks.1point[[1]][1,1], exp(beta[1])))
 stopifnot(all.equal(Ks.1point[[2]][1,1], 0))
 
 # Identical tests with numerical gradient
+library(numDeriv)
 Ks.1point.num = grad(function(beta_) {
- as.numeric(cov.SE(point1, beta=beta_))
+  cov.SE(point1, beta=beta_)[1,1]
 }, x=beta)
 stopifnot(all.equal(Ks.1point.num[1], exp(beta[1])))
 stopifnot(all.equal(Ks.1point.num[2], 0))
 
 Ks.2points = cov.SE.d(point1, point2, beta=beta)
 Ks.2points.num = grad(function(beta_) {
- as.numeric(cov.SE(point1, point2, beta=beta_))
+  as.numeric(cov.SE(point1, point2, beta=beta_))
 }, x=beta)
 
 # Check numerical gradient equals analytic gradient
