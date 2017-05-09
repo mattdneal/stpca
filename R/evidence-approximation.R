@@ -114,6 +114,22 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
 #' @param K Prior covariance matrix
 #' @return H_{w_i}
 #' @import Matrix
+#' @examples
+#' d=10; k=3; n=10
+#' X = matrix(rnorm(n*d), ncol=d)
+#' W = matrix(rnorm(d*k), ncol=k)
+#' mu = rnorm(d)
+#' sigSq = rnorm(1)^2
+#' K = cov.SE(matrix(1:10, ncol=1), beta=log(c(1, 3)))
+#'
+#' Hw1.analytic = spca.H.W(X, W, mu, sigSq, K)[[1]]
+#' Hw1.numeric  = Matrix(hessian(function(w) {
+#'   W_ = W
+#'   W_[,1] = w
+#'   -spca.log_posterior(X, K, W_, mu, sigSq)
+#' }, x=W[,1]))
+#'
+#' stopifnot(all.equal(HW.analytic, HW.numeric))
 spca.H.W <- function(X, W, mu, sigSq, K) {
   n = nrow(X)
   d = ncol(X)
