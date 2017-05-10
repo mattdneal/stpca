@@ -105,7 +105,7 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
   return(ev1-ev2)
 }
 
-#' Internal function for computing the w_i block of H
+#' Compute all the w_i blocks of H
 #'
 #' @param X Data
 #' @param W Loadings matrix
@@ -122,14 +122,16 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
 #' sigSq = rnorm(1)^2
 #' K = cov.SE(matrix(1:10, ncol=1), beta=log(c(1, 3)))
 #'
-#' Hw1.analytic = spca.H.W(X, W, mu, sigSq, K)[[1]]
+#' library(numDeriv)
+#' library(Matrix)
+#' Hw1.analytic = spca:::spca.H.W(X, W, mu, sigSq, K)[[1]]
 #' Hw1.numeric  = Matrix(hessian(function(w) {
 #'   W_ = W
 #'   W_[,1] = w
 #'   -spca.log_posterior(X, K, W_, mu, sigSq)
 #' }, x=W[,1]))
 #'
-#' stopifnot(all.equal(HW.analytic, HW.numeric))
+#' stopifnot(all.equal(Hw1.analytic, Hw1.numeric))
 spca.H.W <- function(X, W, mu, sigSq, K) {
   n = nrow(X)
   d = ncol(X)
