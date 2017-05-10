@@ -159,6 +159,38 @@ spca.H.W <- function(X, W, mu, sigSq, K) {
   return(HW)
 }
 
+#' Value and gradient of function to be minimized in tuning beta
+#'
+#' @param X
+#' @param W
+#' @param mu
+#' @param sigSq
+#' @param locations
+#' @param covar.fn
+#' @param covar.fn.d
+#' @return A function which, when given a value of beta, returns a value and
+#'         gradient of a function to be minimized in beta-tuning.
+#' @import Matrix
+#' @import numDeriv
+#' @examples
+#' n = 100
+#' d = 30
+#' k = 3
+#' X = matrix(rnorm(n*d), ncol=d)
+#' W = matrix(rnorm(d*k), nrow=d, ncol=k)
+#' mu = rnorm(d)
+#' sigSq = rnorm(1)^2
+#' locations = matrix(rnorm(d*2), ncol=2)
+#' beta = rnorm(2)
+#'
+#' fdf = spca:::min.f.generator(X, W, mu, sigSq, locations, cov.SE, cov.SE.d)
+#'
+#' library(numDeriv)
+#' grad.analytic = fdf(beta)$df
+#' grad.numeric = grad(function(beta_) {
+#'   fdf(beta_)$f
+#' }, x=beta)
+#' all.equal(grad.analytic, grad.numeric, tolerance=100*.Machine$double.eps^0.5)
 min.f.generator <- function(X, W, mu, sigSq, locations, covar.fn, covar.fn.d, D=NA, max.dist=Inf, sparse=FALSE) {
 
   n = nrow(X)
@@ -173,37 +205,36 @@ min.f.generator <- function(X, W, mu, sigSq, locations, covar.fn, covar.fn.d, D=
     K_  = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
     dK_ = covar.fn.d(locations, beta=beta_, D=D, max.dist=max.dist)
 
-    if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) { browser() }
-
-    # TODO: Calculate determinant from decomposition
-    logDetK = as.numeric(determinant(K_, logarithm=TRUE)$modulus)
-    trWtKinvW = sum(diag(crossprod(W, solve(K_, W))))
-
-    ## Terms used in f and gradient calcs: HwSum and logDetHwSum
     HW = spca.H.W(X, W, mu, sigSq, K_)
-    HwSum = Reduce('+', HW)
-    logDetHwSum = vapply(HW, function(Hw) {
+    logDetHwSum = sum(vapply(HW, function(Hw) {
       as.numeric(determinant(Hw, logarithm=TRUE)$modulus)
-    }, numeric(1))
-    grTerm3 = solve(K_, t(solve(K_, t(HwSum))))
+    }, numeric(1)))
+
+    logDetK = as.numeric(determinant(K_, logarithm=TRUE)$modulus)
+
+    TrWtKinvW = sum(diag(Matrix::crossprod(W, solve(K_, W))))
 
     ## Function value
-    f.val = 0.5*(k*logDetK + trWtKinvW + logDetHwSum)
+    f.val = 0.5*(logDetHwSum + k*logDetK + TrWtKinvW)
 
     ## Function gradients
     f.gr = numeric(length(dK_))
     for (i in 1:length(f.gr)) {
-      grTerm1 = k * sum(diag(solve(K_, dK_[[i]])))
+      grTerm1 = -sum(vapply(HW, function(Hw) {
+        sum(diag(solve(K_%*%Hw%*%K_, dK_[[i]])))
+      }, numeric(1)))
+
+      grTerm2 = k * sum(diag(solve(K_, dK_[[i]])))
+
       KinvW = solve(K_, W)
-      grTerm2 = sum(vapply(1:k, function(k_) {
+      grTerm3 = -sum(vapply(1:k, function(k_) {
         as.numeric(KinvW[,k_] %*% dK_[[i]] %*% KinvW[,k_])
       }, numeric(1)))
-      f.gr[i] = 0.5*(grTerm1 - grTerm2 - sum(diag(grTerm3%*%dK_[[i]]))) # TODO: This might need a minus sign
-    }
 
+      f.gr[i] = 0.5*(grTerm1 + grTerm2 + grTerm3)
+    }
     return(list(f=f.val, df=f.gr))
   }
-
 
   if(sparse) {
     return(min.f.sparse)
