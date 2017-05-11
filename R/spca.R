@@ -185,8 +185,10 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       min.f   = function(beta_) {min.fdf(beta_)$f}
       min.df  = function(beta_) {min.fdf(beta_)$df}
 
-      optObj2.init = suppressWarnings(multimin.init(x=beta, fdf=min.fdf,
-                                      f=min.f, df=min.df, method="bfgs"))
+      #optObj2.init = suppressWarnings(multimin.init(x=beta, fdf=min.fdf,
+      #                                f=min.f, df=min.df, method="bfgs"))
+      optObj2.init = multimin.init(x=beta, #fdf=min.fdf,
+                                   f=min.f, df=min.df, method="bfgs")
       optObj2      = multimin.iterate(optObj2.init)
 
       #beta = coef(optObj)
