@@ -60,6 +60,26 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   return(list(dK1, dK2))
 }
 
+#' Computationally cheap estimate for beta0 for cov.SE.
+#' @export
+#' @include synthesize-data.R
+#' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
+#' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
+#' beta0 = cov.SE.beta0(synth$X, synth$grid)
+#' stopifnot(all(is.finite(beta0)))
+cov.SE.beta0 <- function(X, locations) {
+  sigSqf0 = mean(apply(X, 2, var)/k)
+  Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
+  C      = cov(as.matrix(X))
+
+  # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
+  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqf0) - log(mean(C)))), na.rm=TRUE),
+               sqrt(max(Rsq)))
+  beta0 = log(c(sigSqf0, l0))
+
+  return(beta0)
+}
+
 #' Rational quadratic covariance function
 #' @export
 #' @include util.R
