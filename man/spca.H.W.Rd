@@ -2,7 +2,7 @@
 % Please edit documentation in R/evidence-approximation.R
 \name{spca.H.W}
 \alias{spca.H.W}
-\title{Internal function for computing the w_i block of H}
+\title{Compute all the w_i blocks of H}
 \usage{
 spca.H.W(X, W, mu, sigSq, K)
 }
@@ -17,5 +17,24 @@ spca.H.W(X, W, mu, sigSq, K)
 H_{w_i}
 }
 \description{
-Internal function for computing the w_i block of H
+Compute all the w_i blocks of H
+}
+\examples{
+d=10; k=3; n=10
+X = matrix(rnorm(n*d), ncol=d)
+W = matrix(rnorm(d*k), ncol=k)
+mu = rnorm(d)
+sigSq = rnorm(1)^2
+K = cov.SE(matrix(1:10, ncol=1), beta=log(c(1, 3)))
+
+library(numDeriv)
+library(Matrix)
+Hw1.analytic = spca:::spca.H.W(X, W, mu, sigSq, K)[[1]]
+Hw1.numeric  = Matrix(hessian(function(w) {
+  W_ = W
+  W_[,1] = w
+  -spca.log_posterior(X, K, W_, mu, sigSq)
+}, x=W[,1]))
+
+stopifnot(all.equal(Hw1.analytic, Hw1.numeric))
 }
