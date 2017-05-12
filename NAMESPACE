@@ -2,6 +2,7 @@
 
 S3method(predict,spca)
 export(cov.RQ)
+export(cov.RQ.beta0)
 export(cov.RQ.d)
 export(cov.SE)
 export(cov.SE.beta0)

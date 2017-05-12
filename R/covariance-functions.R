@@ -144,6 +144,36 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
   return(list(dK1, dK2, dK3))
 }
 
+#' Computationally cheap estimate for beta0 for cov.RQ.
+#' @export
+#' @include synthesize-data.R
+#' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4, 0.3)))
+#' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
+#' beta0 = cov.RQ.beta0(synth$X, synth$grid)
+#' stopifnot(all(is.finite(beta0)))
+cov.RQ.beta0 <- function(X, locations) {
+  sigSqf0 = mean(apply(X, 2, var)/k)
+  Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
+  C      = cov(as.matrix(X))
+
+  # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
+  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqf0) - log(mean(C)))), na.rm=TRUE),
+               sqrt(max(Rsq)))
+
+  #browser()
+  #f = function(alpha_) {
+  #  (1 + Rsq/(2*alpha_*l0*l0))^(-alpha_) - C
+  #}
+  #alpha0 = uniroot(f, interval=c(0, 10))
+  #alpha0 = uniroot(f, interval=c(0.01, 2))$root
+  alpha0 = 2
+
+  beta0 = log(c(sigSqf0, l0, alpha0))
+
+  return(beta0)
+}
+
+
 cov.independent <- function(X, X2=NA, beta=c(), D=NA, max.dist=NA) {
   stopifnot(nrow(X) == length(beta))
   return(sparseMatrix(i=1:nrow(X), j=1:nrow(X), x=exp(beta), dims=c(nrow(X), nrow(X))))
