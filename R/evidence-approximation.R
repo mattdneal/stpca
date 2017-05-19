@@ -33,30 +33,10 @@ spca.log_evidence <- function(X, K, W, mu, sigSq) {
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
   Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
-  logDetH = 0
-
-  # Compute each of the blocks of H corresponding to each w_i, and the log
-  # determinant of this block to the comulative log determinant
-  #for (i in 1:k) {
-  #  Hw = spca.H.W(X, W[,i], mu, K)
-  #  logDetH = logDetH + as.numeric(determinant(Hw, logarithm=TRUE)$modulus)
-  #}
-  HW = spca.H.W(X, W, mu, sigSq, K)
-  logDetH = sum(vapply(HW, function(Hw) {
-     as.numeric(determinant(Hw, logarithm=TRUE)$modulus)
+  H = spca.H(X, W, mu, sigSq, K)
+  logDetH = sum(vapply(H, function(Hblock) {
+     as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
   }, numeric(1)))
-
-  # Compute the mu block of H, add the log det to the cumulative total
-  HmuLogDet = as.numeric(determinant(n*Cinv, logarithm=TRUE)$modulus)
-  logDetH   = logDetH + HmuLogDet
-
-  # Compute the sigSq block of H & add log det to cumulative total
-  tmp = (sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
-                     0.5*n*sum(diag(Cinv%*%Cinv)))
-  if (tmp<=0) {browser()}
-  HsigSqLogDet = log(sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
-                     0.5*n*sum(diag(Cinv%*%Cinv)))
-  logDetH      = logDetH + HsigSqLogDet
 
   # Laplace-approximated log evidence
   logZ = (spca.log_posterior(X, K, W, mu, sigSq) +
@@ -158,6 +138,60 @@ spca.H.W <- function(X, W, mu, sigSq, K) {
   }
 
   return(HW)
+}
+
+#' Compute all the blocks of H.
+#'
+#' @param X Data
+#' @param W Loadings matrix
+#' @param mu
+#' @param sigSq
+#' @param K Prior covariance matrix
+#' @return H
+#' @import Matrix
+#' @examples
+#' set.seed(1)
+#' d=10; k=3; n=1000
+#' X = matrix(rnorm(n*d), ncol=d)
+#' W = matrix(rnorm(d*k), ncol=k)
+#' mu = rnorm(d)
+#' sigSq = rnorm(1)^2
+#' K = cov.SE(matrix(1:10, ncol=1), beta=log(c(2, 3)))
+#'
+#' library(numDeriv)
+#' library(Matrix)
+#'
+#' #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
+#' H.analytic = spca:::spca.H(X, W, mu, sigSq, K)
+#' HsigSq.numeric = hessian(function(sigSq_) {
+#'   -spca.log_posterior(X, K, W, mu, sigSq_)
+#' }, x=sigSq)[1,1]
+#' stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
+#'                     tolerance=1e-8))
+#'
+#' Hmu.numeric  = Matrix(hessian(function(mu_) {
+#'   -spca.log_posterior(X, K, W, mu_, sigSq)
+#' }, x=mu))
+#' stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
+spca.H <- function(X, W, mu, sigSq, K) {
+  n = nrow(X)
+  d = ncol(X)
+  k = ncol(W)
+  Xc = sweep(X, 2, mu)
+
+  R = Matrix::chol(crossprod(W) + sigSq*diag(k))
+  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+
+  HW  = spca.H.W(X, W, mu, sigSq, K)
+
+  Hmu = n*Cinv
+  HsigSq = (sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
+                     0.5*n*sum(diag(Cinv%*%Cinv)))
+  H = list()
+  H[paste("w",1:length(HW),sep='')] = HW
+  H["mu"]    = Hmu
+  H["sigSq"] = HsigSq
+  return(H)
 }
 
 #' Value and gradient of function to be minimized in tuning beta
