@@ -63,12 +63,14 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' Computationally cheap estimate for beta0 for cov.SE.
 #' @export
 #' @include synthesize-data.R
+#' @examples
+#' library(functional)
 #' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
 #' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
-#' beta0 = cov.SE.beta0(synth$X, synth$grid)
+#' beta0 = cov.SE.beta0(synth$X, synth$grid, k)
 #' stopifnot(all(is.finite(beta0)))
-cov.SE.beta0 <- function(X, locations) {
-  n  = nrow(X); d  = ncol(X)
+cov.SE.beta0 <- function(X, locations, k) {
+  n = nrow(X); d = ncol(X)
   covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=k)
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
@@ -152,11 +154,13 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' Computationally cheap estimate for beta0 for cov.RQ.
 #' @export
 #' @include synthesize-data.R
+#' @examples
+#' library(functional)
 #' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4, 0.3)))
 #' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
-#' beta0 = cov.RQ.beta0(synth$X, synth$grid)
+#' beta0 = cov.RQ.beta0(synth$X, synth$grid, k)
 #' stopifnot(all(is.finite(beta0)))
-cov.RQ.beta0 <- function(X, locations) {
+cov.RQ.beta0 <- function(X, locations, k) {
   sigSqf0 = mean(apply(X, 2, var)/k)
   Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
   C      = cov(as.matrix(X))
