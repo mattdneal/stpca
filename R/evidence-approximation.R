@@ -115,6 +115,7 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
 #' @return H_{w_i}
 #' @import Matrix
 #' @examples
+#' set.seed(1)
 #' d=10; k=3; n=10
 #' X = matrix(rnorm(n*d), ncol=d)
 #' W = matrix(rnorm(d*k), ncol=k)
@@ -173,6 +174,7 @@ spca.H.W <- function(X, W, mu, sigSq, K) {
 #' @import Matrix
 #' @import numDeriv
 #' @examples
+#' set.seed(1)
 #' n = 100
 #' d = 30
 #' k = 3
