@@ -68,7 +68,12 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' beta0 = cov.SE.beta0(synth$X, synth$grid)
 #' stopifnot(all(is.finite(beta0)))
 cov.SE.beta0 <- function(X, locations) {
-  sigSqf0 = mean(apply(X, 2, var)/k)
+  n  = nrow(X); d  = ncol(X)
+  covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=k)
+  covar.eigval = covar.svd$d^2
+  sigSq = sum(covar.eigval[-(1:k)])/(d-k)
+
+  sigSqf0 = mean((apply(X, 2, var) - sigSq)/k)
   Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
   C      = cov(as.matrix(X))
 
