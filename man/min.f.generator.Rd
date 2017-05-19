@@ -15,6 +15,7 @@ A function which, when given a value of beta, returns a value and
 Value and gradient of function to be minimized in tuning beta
 }
 \examples{
+set.seed(1)
 n = 100
 d = 30
 k = 3
