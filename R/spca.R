@@ -158,6 +158,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       lps[iteration] = lp
     } # end 'innerConverged' loop
 
+    # TODO: Move out to a different function & get unit tests. Same w/ 'inner' EM loop.
     ########################
     ## Tune Hyperparameters
     ########################
@@ -209,7 +210,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   W     = W.svd$u %*% diag(W.svd$d, nrow=k, ncol=k)
   E_V1  = E_V1 %*% W.svd$v
 
-  # TODO
+  # TODO: Make largest abs value positive
   # Identify directionality of each component by fixing sign of 1st element to be +ve
   #P = diag(sign(W[1,]), nrow=k, ncol=k)
   #W = W %*% P
@@ -218,6 +219,8 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   ll = spca.log_likelihood(X, W, mu, sigSq)
   dof = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
   bic = -2*ll + dof*log(n)
+
+  H = spca.H(X, W, mu, sigSq, K)
 
   spcaObj = list(X     = X,
                  W     = W,
@@ -229,10 +232,12 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  lps   = lps,
                  bic   = bic,
                  beta  = beta,
-                 locations = locations,
+                 K     = K,
+                 H     = H,
                  covar.fn = covar.fn,
+                 locations = locations,
                  covar.fn.d = covar.fn.d,
-                 K     = K)
+                 log_evidence = evidence)
   class(spcaObj) = "spca"
   return(spcaObj)
 }
