@@ -163,13 +163,13 @@ spca.H.W <- function(X, W, mu, sigSq, K) {
 #'
 #' #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
 #' H.analytic = spca:::spca.H(X, W, mu, sigSq, K)
-#' HsigSq.numeric = hessian(function(sigSq_) {
+#' HsigSq.numeric = Matrix(hessian(function(sigSq_) {
 #'   -spca.log_posterior(X, K, W, mu, sigSq_)
-#' }, x=sigSq)[1,1]
+#' }, x=sigSq))
 #' stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
 #'                     tolerance=1e-8))
 #'
-#' Hmu.numeric  = Matrix(hessian(function(mu_) {
+#' Hmu.numeric = Matrix(hessian(function(mu_) {
 #'   -spca.log_posterior(X, K, W, mu_, sigSq)
 #' }, x=mu))
 #' stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
@@ -185,7 +185,7 @@ spca.H <- function(X, W, mu, sigSq, K) {
   HW  = spca.H.W(X, W, mu, sigSq, K)
 
   Hmu = n*Cinv
-  HsigSq = (sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
+  HsigSq = Matrix(sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
                      0.5*n*sum(diag(Cinv%*%Cinv)))
   H = list()
   H[paste("w",1:length(HW),sep='')] = HW
