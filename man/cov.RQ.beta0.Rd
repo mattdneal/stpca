@@ -4,8 +4,15 @@
 \alias{cov.RQ.beta0}
 \title{Computationally cheap estimate for beta0 for cov.RQ.}
 \usage{
-cov.RQ.beta0(X, locations)
+cov.RQ.beta0(X, locations, k)
 }
 \description{
 Computationally cheap estimate for beta0 for cov.RQ.
+}
+\examples{
+library(functional)
+n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4, 0.3)))
+synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
+beta0 = cov.RQ.beta0(synth$X, synth$grid, k)
+stopifnot(all(is.finite(beta0)))
 }
