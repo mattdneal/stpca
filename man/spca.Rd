@@ -38,7 +38,7 @@ Performs SPCA
 }
 \examples{
 library(fields)
-data(ozone2) # TODO: Get rid of dependancy on fields package
+data(ozone2)
 
 # Missing data: Replace missing values by column means
 X = ozone2$y
