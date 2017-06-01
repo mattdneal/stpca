@@ -2,7 +2,8 @@
 % Please edit documentation in R/spca.R
 \name{spca.log_likelihood}
 \alias{spca.log_likelihood}
-\title{Calculate the log likelihood for SPCA with given parameters}
+\title{Does not yet work with 'new' SPCA architecture
+Calculate the log likelihood for SPCA with given parameters}
 \usage{
 spca.log_likelihood(X, W, mu, sigSq)
 }
@@ -13,5 +14,26 @@ spca.log_likelihood(X, W, mu, sigSq)
 log likelihood (numeric)
 }
 \description{
+Does not yet work with 'new' SPCA architecture
 Calculate the log likelihood for SPCA with given parameters
+}
+\examples{
+d = 50
+k = 5
+n = 15
+
+set.seed(1)
+X  = matrix(rnorm(n*d), nrow=n, ncol=d)
+mu = colMeans(X)
+Xc = sweep(X, 2, mu, '-')
+covar.svd = svd(Xc/sqrt(n), nu=0, nv=k)
+covar.eigval = covar.svd$d^2
+sigSq = sum(covar.eigval[-(1:k)])/(d-k)
+W     = covar.svd$v \%*\% diag(sqrt(covar.eigval[1:k] - sigSq), ncol=k, nrow=k)
+
+# The likelihood is invariant to multiplying  by an orthonormal matrix.
+Wrot = W \%*\% svd(W)$v
+l1 = spca.log_likelihood(X, W, mu, sigSq)
+l2 = spca.log_likelihood(X, Wrot, mu, sigSq)
+stopifnot(all.equal(l1, l2))
 }

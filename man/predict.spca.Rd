@@ -4,7 +4,7 @@
 \alias{predict.spca}
 \title{De-noise a sample using a trained \code{spca} object.}
 \usage{
-\method{predict}{spca}(object, samples)
+\method{predict}{spca}(object, ...)
 }
 \arguments{
 \item{object}{An \code{spca} object returned from a call to \code{spca}}
