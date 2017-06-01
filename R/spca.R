@@ -263,6 +263,25 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
 #' @param sigSq
 #' @return log likelihood (numeric)
 #' @export
+#' @examples
+#' d = 50
+#' k = 5
+#' n = 15
+#'
+#' set.seed(1)
+#' X  = matrix(rnorm(n*d), nrow=n, ncol=d)
+#' mu = colMeans(X)
+#' Xc = sweep(X, 2, mu, '-')
+#' covar.svd = svd(Xc/sqrt(n), nu=0, nv=k)
+#' covar.eigval = covar.svd$d^2
+#' sigSq = sum(covar.eigval[-(1:k)])/(d-k)
+#' W     = covar.svd$v %*% diag(sqrt(covar.eigval[1:k] - sigSq), ncol=k, nrow=k)
+#'
+#' # The likelihood is invariant to multiplying  by an orthonormal matrix.
+#' Wrot = W %*% svd(W)$v
+#' l1 = spca.log_likelihood(X, W, mu, sigSq)
+#' l2 = spca.log_likelihood(X, Wrot, mu, sigSq)
+#' stopifnot(all.equal(l1, l2))
 spca.log_likelihood <- function(X, W, mu, sigSq) {
   if (is.vector(X)) {X = matrix(X, nrow=1)}
 
