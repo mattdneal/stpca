@@ -243,17 +243,17 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   return(spcaObj)
 }
 
-#' Does not yet work with 'new' SPCA architecture
-spca.continue <- function(spcaObj, trace=0, report_iter=10, max.dist=Inf,
-                          maxit=10, tol=1e-2, ucminf.control=list()) {
-  stop("Does not yet work with 'new' SPCA architecture")
-  newPrcaObj = spca(X=spcaObj$X, k=ncol(spcaObj$W), locations=spcaObj$locations,
-                    covar.fn=spcaObj$covar.fn, covar.fn.d=spcaObj$covar.fn.d,
-                    beta0=spcaObj$beta, trace=trace, report_iter=report_iter,
-                    max.dist=max.dist, maxit=maxit, tol=tol,
-                    ucminf.control=ucminf.control)
-  return(newPrcaObj)
-}
+##' Does not yet work with 'new' SPCA architecture
+#spca.continue <- function(spcaObj, trace=0, report_iter=10, max.dist=Inf,
+#                          maxit=10, tol=1e-2, ucminf.control=list()) {
+#  stop("Does not yet work with 'new' SPCA architecture")
+#  newPrcaObj = spca(X=spcaObj$X, k=ncol(spcaObj$W), locations=spcaObj$locations,
+#                    covar.fn=spcaObj$covar.fn, covar.fn.d=spcaObj$covar.fn.d,
+#                    beta0=spcaObj$beta, trace=trace, report_iter=report_iter,
+#                    max.dist=max.dist, maxit=maxit, tol=tol,
+#                    ucminf.control=ucminf.control)
+#  return(newPrcaObj)
+#}
 
 #' Calculate the log likelihood for SPCA with given parameters
 #'
