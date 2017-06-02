@@ -158,10 +158,11 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       lps[iteration] = lp
     } # end 'innerConverged' loop
 
-    ## Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
-    ## This also has the effect of making each column of W an eigenvector of cov[ X | \beta, \sigma^2 ]
+    # Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
+    # This also has the effect of making each column of W an eigenvector of
+    # cov[ X | \beta, \sigma^2 ]
     W.svd = svd(W)
-    W     = W.svd$u %*% diag(W.svd$d, nrow=k, ncol=k)
+    W     = W    %*% W.svd$v
     E_V1  = E_V1 %*% W.svd$v
 
     # TODO: Move out to a different function & get unit tests. Same w/ 'inner' EM loop.
