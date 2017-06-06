@@ -13,6 +13,10 @@ synthesize_data <- function(n, k, K, noisesd=0) {
   V   = mvrnorm(n=n, mu=rep(0, k), Sigma=diag(k))
   X   = V %*% t(W) + matrix(rnorm(n*d, sd=noisesd), nrow=n, ncol=d)
 
+  W.svd = svd(W)
+  W     = W %*% W.svd$v
+  V     = V %*% W.svd$v
+
   return(list(X   = X,
               W   = W,
               V   = V))
