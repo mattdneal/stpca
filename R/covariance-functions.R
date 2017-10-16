@@ -75,6 +75,7 @@ cov.SE.beta0 <- function(X, locations, k) {
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
 
+  # \sigma^2_f <- 1/k mean( diag(cov(X) - \sigma^2\mathit{I}) )
   sigSqf0 = mean((apply(X, 2, var) - sigSq)/k)
   Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
   C      = cov(as.matrix(X))
