@@ -26,7 +26,7 @@ sigSq = rnorm(1)^2
 locations = matrix(rnorm(d*2), ncol=2)
 beta = rnorm(2)
 
-fdf = spca:::min.f.generator(X, W, mu, sigSq, locations, cov.SE, cov.SE.d)
+fdf = stpca:::min.f.generator(X, W, mu, sigSq, locations, cov.SE, cov.SE.d)
 
 library(numDeriv)
 grad.analytic = fdf(beta)$df

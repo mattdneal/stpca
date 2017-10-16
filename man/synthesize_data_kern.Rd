@@ -2,7 +2,7 @@
 % Please edit documentation in R/synthesize-data.R
 \name{synthesize_data_kern}
 \alias{synthesize_data_kern}
-\title{Synthesize fake data from SPCA model}
+\title{Synthesize fake data from StPCA model}
 \usage{
 synthesize_data_kern(n, k, dim, kern, noisesd = 0)
 }
@@ -18,5 +18,5 @@ synthesize_data_kern(n, k, dim, kern, noisesd = 0)
 \item{noisesd}{standard deviation of noise added to data}
 }
 \description{
-Synthesize fake data from SPCA model
+Synthesize fake data from StPCA model
 }

@@ -16,7 +16,7 @@ Collate:
     'util.R'
     'covariance-functions.R'
     'evidence-approximation.R'
-    'spca.R'
+    'stpca.R'
 Imports: functional, MASS, fields, gsl, Matrix, numDeriv
 ByteCompile: true
 RoxygenNote: 6.0.1.9000
