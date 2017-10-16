@@ -1,4 +1,4 @@
-#' Synthesize fake data from SPCA model
+#' Synthesize fake data from StPCA model
 #' @export
 #' @param n Number of samples to create
 #' @param k Latent dimensionality
@@ -22,7 +22,7 @@ synthesize_data <- function(n, k, K, noisesd=0) {
               V   = V))
 }
 
-#' Synthesize fake data from SPCA model
+#' Synthesize fake data from StPCA model
 #' @export
 #' @param n Number of samples to create
 #' @param k Latent dimensionality

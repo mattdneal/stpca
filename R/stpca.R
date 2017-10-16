@@ -1,4 +1,4 @@
-#' Performs SPCA
+#' Performs StPCA
 #'
 #' @param X Data
 #' @param k Latent dimensionality
@@ -11,7 +11,7 @@
 #' @param max.dist Maximum distance between features to consider
 #' @param maxit number of inner iterations
 #' @param maxit.outer number of outer iterations
-#' @return An \code{spca} object.
+#' @return An \code{stpca} object.
 #' @export
 #' @include util.R
 #' @include evidence-approximation.R
@@ -32,9 +32,9 @@
 #' locations = ozone2$lon.lat
 #' locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
 #'
-#' model.spca = spca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
+#' model.stpca = stpca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
 #'                   maxit=20, maxit.outer=3, trace=0)
-spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
+stpca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  trace=0, report_iter=10, max.dist=Inf,
                  maxit=20, maxit.outer=5) {
 
@@ -55,11 +55,11 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   W     = covar.svd$v %*% diag(sqrt(covar.eigval[1:k] - sigSq), ncol=k, nrow=k)
 
   if (sigSq < 1e-10) {warning("The data provided lie close to a subspace of ",
-    "dimensionality equal to or lower than the k provided; spca may fail due ",
+    "dimensionality equal to or lower than the k provided; stpca may fail due ",
     "to producing a degenerate probability model. Maybe pick a smaller k?")}
 
   if (trace>=1) {
-    print(paste("Starting spca with", length(beta0), "hyperparameters"))
+    print(paste("Starting stpca with", length(beta0), "hyperparameters"))
   }
 
   beta = beta0
@@ -71,7 +71,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   }
   stopifnot(is(K, "Matrix"))
 
-  lp   = spca.log_posterior(X, K, W, mu, sigSq) # Current log posterior
+  lp   = stpca.log_posterior(X, K, W, mu, sigSq) # Current log posterior
   lps  = numeric(maxit) # Record of log posteriors for monitoring convergence
 
   outerConverged = FALSE
@@ -107,7 +107,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
 
       ## Expectation Step
       WtW = crossprod(W)
-      if (all(WtW==0)) {stop(paste("SPCA has failed due to numerical instability.",
+      if (all(WtW==0)) {stop(paste("StPCA has failed due to numerical instability.",
         "Try dividing X by it's largest singular value to improve numerical",
         "stability"))}
       Minv = chol2inv(chol(WtW + sigSq*diag(k)))
@@ -142,7 +142,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       ####################################
       ## Convergence criteria & printouts if trace > 0
       ####################################
-      lpNew = spca.log_posterior(X, K, W, mu, sigSq)
+      lpNew = stpca.log_posterior(X, K, W, mu, sigSq)
       if (iteration >= maxit) { # Check for maximum iterations reached. If so, print.
         if (trace>0) {
           print(paste("Convergence criteria reached:", iteration, "iterations"))
@@ -171,7 +171,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
     ########################
     outerConverged = (outerIteration>=maxit.outer)
     if (!outerConverged & (length(beta0) > 0)) { # There are HPs to tune
-      evidence = spca.log_evidence(X, K, W, mu, sigSq)
+      evidence = stpca.log_evidence(X, K, W, mu, sigSq)
       if (trace>=1) {
         print(paste("Outer iteration ", outerIteration, ": log evidence=",
                     round(evidence, 4), sep=''))
@@ -180,7 +180,7 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
       min.f = function(beta_) {
         K_ = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
         if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) { browser() }
-        return(-spca.log_evidence(X, K_, W, mu, sigSq))
+        return(-stpca.log_evidence(X, K_, W, mu, sigSq))
       }
 
       #optObj = optimx(par=beta, fn=min.f, method="Nelder-Mead", control=list(
@@ -218,13 +218,13 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   #W = W %*% P
   #E_V1 = E_V1 %*% P
 
-  ll = spca.log_likelihood(X, W, mu, sigSq)
+  ll = stpca.log_likelihood(X, W, mu, sigSq)
   dof = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
   bic = -2*ll + dof*log(n)
 
-  H = spca.H(X, W, mu, sigSq, K)
+  H = stpca.H(X, W, mu, sigSq, K)
 
-  spcaObj = list(X     = X,
+  stpcaObj = list(X     = X,
                  W     = W,
                  sigSq = sigSq,
                  mu    = mu,
@@ -240,23 +240,23 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                  locations = locations,
                  covar.fn.d = covar.fn.d,
                  log_evidence = evidence)
-  class(spcaObj) = "spca"
-  return(spcaObj)
+  class(stpcaObj) = "stpca"
+  return(stpcaObj)
 }
 
-##' Does not yet work with 'new' SPCA architecture
-#spca.continue <- function(spcaObj, trace=0, report_iter=10, max.dist=Inf,
+##' Does not yet work with 'new' StPCA architecture
+#stpca.continue <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
 #                          maxit=10, tol=1e-2, ucminf.control=list()) {
-#  stop("Does not yet work with 'new' SPCA architecture")
-#  newPrcaObj = spca(X=spcaObj$X, k=ncol(spcaObj$W), locations=spcaObj$locations,
-#                    covar.fn=spcaObj$covar.fn, covar.fn.d=spcaObj$covar.fn.d,
-#                    beta0=spcaObj$beta, trace=trace, report_iter=report_iter,
+#  stop("Does not yet work with 'new' StPCA architecture")
+#  newPrcaObj = stpca(X=stpcaObj$X, k=ncol(stpcaObj$W), locations=stpcaObj$locations,
+#                    covar.fn=stpcaObj$covar.fn, covar.fn.d=stpcaObj$covar.fn.d,
+#                    beta0=stpcaObj$beta, trace=trace, report_iter=report_iter,
 #                    max.dist=max.dist, maxit=maxit, tol=tol,
 #                    ucminf.control=ucminf.control)
 #  return(newPrcaObj)
 #}
 
-#' Calculate the log likelihood for SPCA with given parameters
+#' Calculate the log likelihood for StPCA with given parameters
 #'
 #' @param X Data
 #' @param W
@@ -281,10 +281,10 @@ spca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
 #' R     = svd(matrix(rnorm(k*k), ncol=k, nrow=k))$u # Random orthonormal matrix
 #'
 #' # The likelihood is invariant to multiplying  by an orthonormal matrix.
-#' l1 = spca.log_likelihood(X, W, mu, sigSq)
-#' l2 = spca.log_likelihood(X, W%*%R, mu, sigSq)
+#' l1 = stpca.log_likelihood(X, W, mu, sigSq)
+#' l2 = stpca.log_likelihood(X, W%*%R, mu, sigSq)
 #' stopifnot(all.equal(l1, l2))
-spca.log_likelihood <- function(X, W, mu, sigSq) {
+stpca.log_likelihood <- function(X, W, mu, sigSq) {
   if (is.vector(X)) {X = matrix(X, nrow=1)}
 
   Xc = sweep(X, 2, mu)
@@ -303,13 +303,13 @@ spca.log_likelihood <- function(X, W, mu, sigSq) {
   return(-0.5*(const + nLogDetC + trXCinvXt))
 }
 
-#' Calculate the *un-normalised* log prior for SPCA with given loadings matrix
+#' Calculate the *un-normalised* log prior for StPCA with given loadings matrix
 #'
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix
 #' @return un-normalised log prior (numeric)
 #' @export
-spca.log_prior <- function(K, W) {
+stpca.log_prior <- function(K, W) {
   d = nrow(W)
   k = ncol(W)
 
@@ -345,7 +345,7 @@ spca.log_prior <- function(K, W) {
                 trWtKinvW))
 }
 
-#' Calculate the *un-normalised* log posterior for SPCA with given parameters
+#' Calculate the *un-normalised* log posterior for StPCA with given parameters
 #'
 #' @param X Data
 #' @param K Prior covariance matrix
@@ -354,17 +354,17 @@ spca.log_prior <- function(K, W) {
 #' @param sigSq
 #' @return un-normalised log posterior (numeric)
 #' @export
-spca.log_posterior <- function(X, K, W, mu, sigSq) {
-  return(spca.log_likelihood(X, W, mu, sigSq) + spca.log_prior(K, W))
+stpca.log_posterior <- function(X, K, W, mu, sigSq) {
+  return(stpca.log_likelihood(X, W, mu, sigSq) + stpca.log_prior(K, W))
 }
 
-#' De-noise a sample using a trained \code{spca} object.
+#' De-noise a sample using a trained \code{stpca} object.
 #'
-#' @param object An \code{spca} object returned from a call to \code{spca}
+#' @param object An \code{stpca} object returned from a call to \code{stpca}
 #' @param samples samples to de-noise
 #' @return De-noised samples of the same dimensionality as the parameter \code{samples}
 #' @export
-predict.spca <- function(object, ...) {
+predict.stpca <- function(object, ...) {
   samples = list(...)[[1]]
 
   if (missing(samples)) {
@@ -385,6 +385,6 @@ predict.spca <- function(object, ...) {
   return(proj)
 }
 
-spca.simulate <- function(object, n=1) {
+stpca.simulate <- function(object, n=1) {
   stop("Implement me!")
 }

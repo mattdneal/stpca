@@ -3,7 +3,7 @@
 #' Note that this is multiplied by an UN-KNOWN CONSTANT due to the flat
 #' priors over mu and sigSq. However, this unknown constant is always
 #' the same regardless of k and K, so this may be used to compute
-#' meaningful bayes factors between SPCA models.
+#' meaningful bayes factors between StPCA models.
 #'
 #' @param X Data
 #' @param K Prior covariance matrix
@@ -12,14 +12,14 @@
 #' @param sigSq
 #' @return Approximate log evidence
 #' @export
-spca.log_evidence <- function(X, K, W, mu, sigSq) {
-  if (is(X, "spca")) {
-    spcaObj = X
-    X = spcaObj$X
-    K = spcaObj$K
-    W = spcaObj$W
-    mu = spcaObj$mu
-    sigSq = spcaObj$sigSq
+stpca.log_evidence <- function(X, K, W, mu, sigSq) {
+  if (is(X, "stpca")) {
+    stpcaObj = X
+    X = stpcaObj$X
+    K = stpcaObj$K
+    W = stpcaObj$W
+    mu = stpcaObj$mu
+    sigSq = stpcaObj$sigSq
   }
 
   n = nrow(X)
@@ -33,13 +33,13 @@ spca.log_evidence <- function(X, K, W, mu, sigSq) {
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
   Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
-  H = spca.H(X, W, mu, sigSq, K)
+  H = stpca.H(X, W, mu, sigSq, K)
   logDetH = sum(vapply(H, function(Hblock) {
      as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
   }, numeric(1)))
 
   # Laplace-approximated log evidence
-  logZ = (spca.log_posterior(X, K, W, mu, sigSq) +
+  logZ = (stpca.log_posterior(X, K, W, mu, sigSq) +
           (0.5*(d*k+d+1))*log(2*pi) -
           0.5*logDetH)
   return(logZ)
@@ -58,7 +58,7 @@ spca.log_evidence <- function(X, K, W, mu, sigSq) {
 #' @param sigSq2
 #' @return Log bayes factor; model 1 is numerator
 #' @export
-spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
+stpca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
   only2argsspecified = (!missing(X) & !missing(K1) & missing(W1) & missing(mu1)
                         & missing(sigSq1) & missing(K2) & missing(W2)
                         & missing(mu2) & missing(sigSq2))
@@ -80,8 +80,8 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
     sigSq2 = model2$sigSq
   }
 
-  ev1 = spca.log_evidence(X1, K1, W1, mu1, sigSq1)
-  ev2 = spca.log_evidence(X2, K2, W2, mu2, sigSq2)
+  ev1 = stpca.log_evidence(X1, K1, W1, mu1, sigSq1)
+  ev2 = stpca.log_evidence(X2, K2, W2, mu2, sigSq2)
   return(ev1-ev2)
 }
 
@@ -105,15 +105,15 @@ spca.log_bayes_factor <- function(X, K1, W1, mu1, sigSq1, K2, W2, mu2, sigSq2) {
 #'
 #' library(numDeriv)
 #' library(Matrix)
-#' Hw1.analytic = spca:::spca.H.W(X, W, mu, sigSq, K)[[1]]
+#' Hw1.analytic = stpca:::stpca.H.W(X, W, mu, sigSq, K)[[1]]
 #' Hw1.numeric  = Matrix(hessian(function(w) {
 #'   W_ = W
 #'   W_[,1] = w
-#'   -spca.log_posterior(X, K, W_, mu, sigSq)
+#'   -stpca.log_posterior(X, K, W_, mu, sigSq)
 #' }, x=W[,1]))
 #'
 #' stopifnot(all.equal(Hw1.analytic, Hw1.numeric))
-spca.H.W <- function(X, W, mu, sigSq, K) {
+stpca.H.W <- function(X, W, mu, sigSq, K) {
   n = nrow(X)
   d = ncol(X)
   k = ncol(W)
@@ -162,18 +162,18 @@ spca.H.W <- function(X, W, mu, sigSq, K) {
 #' library(Matrix)
 #'
 #' #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
-#' H.analytic = spca:::spca.H(X, W, mu, sigSq, K)
+#' H.analytic = stpca:::stpca.H(X, W, mu, sigSq, K)
 #' HsigSq.numeric = Matrix(hessian(function(sigSq_) {
-#'   -spca.log_posterior(X, K, W, mu, sigSq_)
+#'   -stpca.log_posterior(X, K, W, mu, sigSq_)
 #' }, x=sigSq))
 #' stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
 #'                     tolerance=1e-8))
 #'
 #' Hmu.numeric = Matrix(hessian(function(mu_) {
-#'   -spca.log_posterior(X, K, W, mu_, sigSq)
+#'   -stpca.log_posterior(X, K, W, mu_, sigSq)
 #' }, x=mu))
 #' stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
-spca.H <- function(X, W, mu, sigSq, K) {
+stpca.H <- function(X, W, mu, sigSq, K) {
   n = nrow(X)
   d = ncol(X)
   k = ncol(W)
@@ -182,7 +182,7 @@ spca.H <- function(X, W, mu, sigSq, K) {
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
   Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
-  HW  = spca.H.W(X, W, mu, sigSq, K)
+  HW  = stpca.H.W(X, W, mu, sigSq, K)
 
   Hmu = n*Cinv
   HsigSq = Matrix(sum(diag(Xc%*%Cinv%*%Cinv%*%Cinv%*%t(Xc))) -
@@ -219,7 +219,7 @@ spca.H <- function(X, W, mu, sigSq, K) {
 #' locations = matrix(rnorm(d*2), ncol=2)
 #' beta = rnorm(2)
 #'
-#' fdf = spca:::min.f.generator(X, W, mu, sigSq, locations, cov.SE, cov.SE.d)
+#' fdf = stpca:::min.f.generator(X, W, mu, sigSq, locations, cov.SE, cov.SE.d)
 #'
 #' library(numDeriv)
 #' grad.analytic = fdf(beta)$df
@@ -241,7 +241,7 @@ min.f.generator <- function(X, W, mu, sigSq, locations, covar.fn, covar.fn.d, D=
     K_  = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
     dK_ = covar.fn.d(locations, beta=beta_, D=D, max.dist=max.dist)
 
-    HW = spca.H.W(X, W, mu, sigSq, K_)
+    HW = stpca.H.W(X, W, mu, sigSq, K_)
     logDetHwSum = sum(vapply(HW, function(Hw) {
       as.numeric(determinant(Hw, logarithm=TRUE)$modulus)
     }, numeric(1)))
