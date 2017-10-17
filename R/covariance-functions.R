@@ -156,7 +156,7 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' @export
 #' @include synthesize-data.R
 #' @examples
-#' Construct some synthetic data, initialise beta for the RQ kernel from this dataset.
+#' # Construct some synthetic data, initialise beta for the RQ kernel from this dataset.
 #' library(functional)
 #' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
 #' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
