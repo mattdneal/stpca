@@ -10,8 +10,9 @@ cov.RQ.beta0(X, locations, k)
 Computationally cheap estimate for beta0 for cov.RQ.
 }
 \examples{
+Construct some synthetic data, initialise beta for the RQ kernel from this dataset.
 library(functional)
-n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4, 0.3)))
+n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
 synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
 beta0 = cov.RQ.beta0(synth$X, synth$grid, k)
 stopifnot(all(is.finite(beta0)))
