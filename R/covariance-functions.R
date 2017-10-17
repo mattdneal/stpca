@@ -1,13 +1,21 @@
 #' Squared exponential covariance function
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta Hyperparameters; beta[1] is the log signal variance, beta[2] is the log length scale.
 #' @export
 #' @include util.R
 #' @import Matrix
 #' @examples
+#' # Confirm that diagonal of covariance matrix is the specified variance, and
+#' # the off-diagonals are less than this.
 #' grid = matrix(1:10, ncol=1)
 #' beta = rnorm(2)
 #' K    = cov.SE(grid, beta=beta)
 #' stopifnot(all(Matrix::diag(K)==exp(beta[1])))
+#' stopifnot(all(K[upper.tri(K)]<exp(beta[1])))
 cov.SE <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==2)
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
