@@ -58,7 +58,7 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
   return(D)
 }
 
-cholSolve <- function(R, X) {
+cholSolve <- function(R, X) { # TODO: Remove entirely?
   # Where R is the pivoted cholesky decomposition of the matrix A, solve
   # the system A^{-1}X
   # TODO: Don't transpose R (use flags in forward/backsolve)

@@ -16,6 +16,11 @@ Collate:
     'util.R'
     'covariance-functions.R'
     'evidence-approximation.R'
+    'predict.R'
+    'simulate.R'
+    'statistical-quantities.R'
+    'stpca.iterate.R'
+    'stpca.init.R'
     'stpca.R'
 Imports: functional, MASS, fields, gsl, Matrix, numDeriv
 ByteCompile: true
