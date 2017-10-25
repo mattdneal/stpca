@@ -16,6 +16,9 @@
 stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                        trace=0, max.dist=Inf) {
 
+  X = as.matrix(X)
+  stopifnot(all(is.finite(X)))
+
   ## Define commonly used variables.
   Xc = scale(X, scale=FALSE) # Centered data: nxd
   mu = attr(Xc, "scaled:center")
