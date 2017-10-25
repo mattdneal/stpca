@@ -9,7 +9,7 @@
 #' @param trace amount of reporting. 0=none, 1=low, 2=high
 #' @param report_iter Number of iterations between reports
 #' @param max.dist Maximum distance between features to consider
-#' @param maxit number of inner iterations
+#' @param maxit.inner number of inner iterations
 #' @param maxit.outer number of outer iterations
 #' @return An \code{stpca} object.
 #' @export
@@ -35,13 +35,13 @@
 #' locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
 #'
 #' model.stpca = stpca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
-#'                   maxit=20, maxit.outer=3, trace=0)
+#'                   maxit.inner=20, maxit.outer=3, trace=0)
 stpca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   trace=0, report_iter=10, max.dist=Inf,
-                  maxit=20, maxit.outer=5) {
+                  maxit.inner=20, maxit.outer=5) {
   stpcaObj = stpca.init(X, k, locations, covar.fn,
                         covar.fn.d, beta0, trace, max.dist)
   stpcaObj = stpca.iterate(stpcaObj, trace, report_iter,
-                           max.dist, maxit, maxit.outer)
+                           max.dist, maxit.inner, maxit.outer)
   return(stpcaObj)
 }

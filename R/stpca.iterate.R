@@ -4,7 +4,7 @@
 #' @param trace amount of reporting. 0=none, 1=low, 2=high
 #' @param report_iter Number of iterations between reports
 #' @param max.dist Maximum distance between features to consider
-#' @param maxit number of inner iterations
+#' @param maxit.inner number of inner iterations
 #' @param maxit.outer number of outer iterations
 #' @return An \code{stpca} object.
 #' @export
@@ -14,7 +14,7 @@
 #' @import fields
 #' @import Matrix
 stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
-                          maxit=20, maxit.outer=5) {
+                          maxit.inner=20, maxit.outer=5) {
 
   ## Unpack stpcaObj
   X     = stpcaObj$X
@@ -34,13 +34,13 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
   d  = ncol(X)      # Original dimensionality
   k  = ncol(W)
 
-  lps = numeric(maxit) # Record of log posteriors for monitoring convergence
+  lps = c() # Record of log posteriors for monitoring convergence
 
   outerConverged = FALSE
-  innerConverged = FALSE
-  iteration = 0
   outerIteration = 0
   while (!outerConverged) {
+    innerConverged = FALSE
+    innerIteration = 0
     while (!innerConverged) {
       ##################
       ## EM for sigma^2
@@ -104,20 +104,20 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
       ####################################
       ## Convergence criteria & printouts if trace > 0
       ####################################
+      innerIteration = innerIteration + 1
       lpNew = stpca.log_posterior(X, K, W, mu, sigSq)
-      if (iteration >= maxit) { # Check for maximum iterations reached. If so, print.
+      if (innerIteration >= maxit.inner) { # Check for maximum iterations reached. If so, print.
         if (trace>0) {
-          print(paste("Convergence criteria reached:", iteration, "iterations"))
+          print(paste("Convergence criteria reached:", innerIteration, "iterations"))
         }
         innerConverged=TRUE
-      } else if (trace==1 && (iteration%%report_iter)==0) {
-        print(paste("Iteration ", iteration, ": log likelihood = ",
+      } else if (trace==1 && (innerIteration%%report_iter)==0) {
+        print(paste("Iteration ", innerIteration, ": log likelihood = ",
                     round(lpNew, 4), " (increase=", round(lpNew-lp, 4),")", sep=''))
       }
 
       lp = lpNew
-      iteration = iteration + 1
-      lps[iteration] = lp
+      lps[length(lps)+1] = lp
     } # end 'innerConverged' loop
 
     # Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
@@ -169,10 +169,6 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
       outerIteration = outerIteration+1
     }
   } # end 'outerConverged' loop
-
-  if (iteration < maxit) { # Trim unused lps entries
-    lps = lps[1:iteration]
-  }
 
   # TODO: Make largest abs value positive
   # Identify directionality of each component by fixing sign of 1st element to be +ve
