@@ -5,7 +5,7 @@
 \title{Performs StPCA}
 \usage{
 stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
-  trace = 0, report_iter = 10, max.dist = Inf, maxit = 20,
+  trace = 0, report_iter = 10, max.dist = Inf, maxit.inner = 20,
   maxit.outer = 5)
 }
 \arguments{
@@ -27,7 +27,7 @@ stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
 
 \item{max.dist}{Maximum distance between features to consider}
 
-\item{maxit}{number of inner iterations}
+\item{maxit.inner}{number of inner iterations}
 
 \item{maxit.outer}{number of outer iterations}
 }
@@ -53,5 +53,5 @@ locations = ozone2$lon.lat
 locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
 
 model.stpca = stpca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
-                  maxit=20, maxit.outer=3, trace=0)
+                  maxit.inner=20, maxit.outer=3, trace=0)
 }

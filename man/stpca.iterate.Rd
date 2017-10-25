@@ -5,7 +5,7 @@
 \title{Continue inference in an stpca object.}
 \usage{
 stpca.iterate(stpcaObj, trace = 0, report_iter = 10, max.dist = Inf,
-  maxit = 20, maxit.outer = 5)
+  maxit.inner = 20, maxit.outer = 5)
 }
 \arguments{
 \item{stpcaObj}{an stpca object.}
@@ -16,7 +16,7 @@ stpca.iterate(stpcaObj, trace = 0, report_iter = 10, max.dist = Inf,
 
 \item{max.dist}{Maximum distance between features to consider}
 
-\item{maxit}{number of inner iterations}
+\item{maxit.inner}{number of inner iterations}
 
 \item{maxit.outer}{number of outer iterations}
 }
