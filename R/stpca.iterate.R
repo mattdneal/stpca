@@ -188,7 +188,7 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
 
   stpcaObj$W     = W
   stpcaObj$sigSq = sigSq
-  stpcaObj$V     = E_V1
+  stpcaObj$V     = as.matrix(E_V1)
   stpcaObj$ll    = ll
   stpcaObj$lp    = lp
   stpcaObj$lps   = c(stpcaObj$lps, lps)
