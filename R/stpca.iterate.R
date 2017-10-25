@@ -133,10 +133,10 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
     ########################
     outerConverged = (outerIteration>=maxit.outer)
     if (!outerConverged & (length(beta) > 0)) { # There are HPs to tune
-      evidence = stpca.log_evidence(X, K, W, mu, sigSq)
+      levidence = stpca.log_evidence(X, K, W, mu, sigSq)
       if (trace>=1) {
         print(paste("Outer iteration ", outerIteration, ": log evidence=",
-                    round(evidence, 4), sep=''))
+                    round(levidence, 4), sep=''))
       }
 
       min.f = function(beta_) {
@@ -193,6 +193,6 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
   stpcaObj$D     = D
   stpcaObj$K     = K
   stpcaObj$H     = H
-  stpcaObj$log_evidence = evidence
+  stpcaObj$log_evidence = levidence
   return(stpcaObj)
 }
