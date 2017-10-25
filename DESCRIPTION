@@ -11,7 +11,7 @@ Description: R package for StPCA. A linear latent variable model similar to PPCA
 Depends: R (>= 3.1.0)
 License: MIT + file LICENSE
 LazyData: true
-Collate: 
+Collate:
     'synthesize-data.R'
     'util.R'
     'covariance-functions.R'
@@ -25,3 +25,4 @@ Collate:
 Imports: functional, MASS, fields, gsl, Matrix, numDeriv
 ByteCompile: true
 RoxygenNote: 6.0.1.9000
+Suggests: testthat
