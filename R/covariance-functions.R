@@ -69,6 +69,9 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 }
 
 #' Computationally cheap estimate for beta0 for cov.SE.
+#' @param X The dataset being analysed with stpca
+#' @param locations Matrix containing the location of each feature in rows
+#' @param k Latent dimensionality used in stpca
 #' @export
 #' @include synthesize-data.R
 #' @examples
@@ -76,22 +79,25 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
 #' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
 #' beta0 = cov.SE.beta0(synth$X, synth$grid, k)
+#' stopifnot(length(beta0) == 2)
 #' stopifnot(all(is.finite(beta0)))
 cov.SE.beta0 <- function(X, locations, k) {
   n = nrow(X); d = ncol(X)
+
   covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=k)
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
 
   # \sigma^2_f <- 1/k mean( diag(cov(X) - \sigma^2\mathit{I}) )
-  sigSqf0 = mean((apply(X, 2, var) - sigSq)/k)
+  sigSqk0 = mean((apply(X, 2, var) - sigSq)/k)
   Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
   C      = cov(as.matrix(X))
 
   # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
-  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqf0) - log(mean(C)))), na.rm=TRUE),
+  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqk0) - log(mean(C)))), na.rm=TRUE),
                sqrt(max(Rsq)))
-  beta0 = log(c(sigSqf0, l0))
+  beta0 = log(c(sigSqk0, l0))
+  names(beta0) = c("logsigSqk0", "logl0")
 
   return(beta0)
 }
@@ -161,6 +167,9 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 }
 
 #' Computationally cheap estimate for beta0 for cov.RQ.
+#' @param X The dataset being analysed with stpca
+#' @param locations Matrix containing the location of each feature in rows
+#' @param k Latent dimensionality used in stpca
 #' @export
 #' @include synthesize-data.R
 #' @examples
@@ -169,15 +178,10 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
 #' synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
 #' beta0 = cov.RQ.beta0(synth$X, synth$grid, k)
+#' stopifnot(length(beta0) == 3)
 #' stopifnot(all(is.finite(beta0)))
 cov.RQ.beta0 <- function(X, locations, k) {
-  sigSqf0 = mean(apply(X, 2, var)/k)
-  Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
-  C      = cov(as.matrix(X))
-
-  # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
-  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqf0) - log(mean(C)))), na.rm=TRUE),
-               sqrt(max(Rsq)))
+  beta0SE = cov.SE.beta0(X, locations, k)
 
   #browser()
   #f = function(alpha_) {
@@ -187,7 +191,7 @@ cov.RQ.beta0 <- function(X, locations, k) {
   #alpha0 = uniroot(f, interval=c(0.01, 2))$root
   alpha0 = 2
 
-  beta0 = log(c(sigSqf0, l0, alpha0))
+  beta0 = c(beta0SE, "logalpha0"=log(alpha0))
 
   return(beta0)
 }
