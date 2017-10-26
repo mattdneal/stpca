@@ -94,10 +94,13 @@ cov.SE.beta0 <- function(X, locations, k) {
   C      = cov(as.matrix(X))
 
   # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
-  l0     = min(mean(sqrt(0.5*Rsq/(log(k*sigSqk0) - log(mean(C)))), na.rm=TRUE),
-               sqrt(max(Rsq)))
-  beta0 = log(c(sigSqk0, l0))
-  names(beta0) = c("logsigSqk0", "logl0")
+  l0    = mean(sqrt(0.5*Rsq/(log(k*sigSqk0) - log(mean(C)))), na.rm=TRUE)
+
+  # Can't learn lengthscales much longer than longest or shorter than shortest
+  # observed distance.
+  l0    = min(l0, 0.9*sqrt(max(Rsq)))
+  l0    = max(l0, 1.1*sqrt(min(Rsq)))
+  beta0 = log(c("logsigSqk"=sigSqk0, "logl"=l0))
 
   return(beta0)
 }
