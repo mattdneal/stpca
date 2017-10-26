@@ -84,7 +84,7 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 cov.SE.beta0 <- function(X, locations, k) {
   n = nrow(X); d = ncol(X)
 
-  covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=k)
+  covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=0)
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
 
