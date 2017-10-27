@@ -16,12 +16,11 @@
 stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                        trace=0, max.dist=Inf) {
 
-  X = as.matrix(X)
   stopifnot(all(is.finite(X)))
 
   ## Define commonly used variables.
-  Xc = scale(X, scale=FALSE) # Centered data: nxd
-  mu = attr(Xc, "scaled:center")
+  X  = scale(X, scale=FALSE) # Centered data: nxd
+  mu = attr(X, "scaled:center")
   n  = nrow(X)               # Number of samples
   d  = ncol(X)               # Original dimensionality
 
@@ -30,7 +29,7 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   stopifnot(nrow(X) >= k) # TODO: Check if I can deal with equality case
 
   ## Initialize W and sigma^2 from PPCA
-  covar.svd = svd(Xc/sqrt(n), nu=0, nv=k)
+  covar.svd = svd(X/sqrt(n), nu=0, nv=k)
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
   W     = covar.svd$v %*% diag(sqrt(covar.eigval[1:k] - sigSq), ncol=k, nrow=k)
@@ -57,11 +56,14 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   dof  = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
   bic  = -2*ll + dof*log(n)
 
-  stpcaObj = list(X     = X,
+  stpcaObj = list(n     = nrow(X),
+                  d     = ncol(X),
+                  k     = k,
+                  X     = X,
                   W     = W,
                   sigSq = sigSq,
                   mu    = mu,
-                  V     = Xc %*% W %*% chol2inv(chol(crossprod(W) + sigSq*diag(k))),
+                  V     = X %*% W %*% chol2inv(chol(crossprod(W) + sigSq*diag(k))),
                   ll    = ll,
                   lp    = lp,
                   lps   = lp,
@@ -70,6 +72,7 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   D     = D,
                   K     = K,
                   H     = list(),
+                  max.dist = max.dist,
                   covar.fn = covar.fn,
                   locations = locations,
                   covar.fn.d = covar.fn.d,

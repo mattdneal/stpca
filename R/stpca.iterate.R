@@ -2,7 +2,7 @@
 #'
 #' @param stpcaObj an stpca object.
 #' @param trace amount of reporting. 0=none, 1=low, 2=high
-#' @param report_iter Number of iterations between reports
+#' @param report.iter Number of iterations between reports
 #' @param max.dist Maximum distance between features to consider
 #' @param maxit.inner number of inner iterations
 #' @param maxit.outer number of outer iterations
@@ -13,52 +13,59 @@
 #' @import gsl
 #' @import fields
 #' @import Matrix
-stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
+stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
                           maxit.inner=20, maxit.outer=5) {
 
-  ## Unpack stpcaObj
-  X     = stpcaObj$X
-  W     = stpcaObj$W
-  sigSq = stpcaObj$sigSq
-  mu    = stpcaObj$mu
-  beta  = stpcaObj$beta
-  D     = stpcaObj$D
-  K     = stpcaObj$K
-  covar.fn   = stpcaObj$covar.fn
-  covar.fn.d = stpcaObj$covar.fn.d
-  locations  = stpcaObj$locations
+  if (length(beta)==0) {
+    maxit.outer=0
+    if (trace >= 1) {
+      print("No hyperparameters; doing no beta-optimisation.")
+    }
+  }
 
-  ## Define commonly used variables.
-  Xc = sweep(X, 2, mu) # Centered data
-  n  = nrow(X)      # Number of samples
-  d  = ncol(X)      # Original dimensionality
-  k  = ncol(W)
+  for (iteration in seq_len(maxit.outer)) {
+    stpcaObj = stpca.iterate.theta(stpcaObj, maxit.inner) # Update theta
+    stpcaObj = stpca.iterate.beta(stpcaObj) # Update beta
+    if (trace>=1) {
+      print(paste("Outer iteration ", iteration, ":\n",
+                  "  *log evidence=", round(stpcaObj$evidence, 4),
+                  "  *new beta    =", paste(stpcaObj$beta, collapse=','),
+                  sep=''))
+    }
+  }
+  stpcaObj = stpca.iterate.theta(stpcaObj, maxit.inner) # Update theta
 
-  lps = c() # Record of log posteriors for monitoring convergence
+  ## BIC
+  n  = nrow(stpcaObj$X) # Number of samples
+  d  = ncol(stpcaObj$X) # Original dimensionality
+  k  = ncol(stpcaObj$W) # Latent dimensionality
+  dof = d*k - 0.5*k*(k-1) + 3 # Degrees of Freedom for PPCA
+  stpcaObj$bic = -2*stpcaObj$ll + dof*log(n)
 
-  outerConverged = FALSE
-  outerIteration = 0
-  while (!outerConverged) {
-    innerConverged = FALSE
-    innerIteration = 0
-    while (!innerConverged) {
+  return(stpcaObj)
+}
+
+stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
+  stopifnot(all(c("X", "W", "mu", "sigSq", "locations") %in% names(stpcaObj)))
+  vars = within(unclass(stpcaObj), {
+    for (iteration in seq_len(maxit.inner)) {
       ##################
       ## EM for sigma^2
       ##################
 
+      # TODO: Move expectation out to a function, add unit tests!
       ## Expectation Step
-      WtW = crossprod(W)
-      Minv = chol2inv(chol(WtW + sigSq*diag(k)))
-      #Minv2 = Matrix::solve(WtW + sigSq*diag(k)) # TODO: Replace; more stable? # EVEN BETTER: store M; Matrix::solve each system!
-      E_V1 = Xc %*% W %*% Minv
+      Minv = chol2inv(chol(crossprod(W) + sigSq*diag(k)))
+      #Minv2 = Matrix::solve(crossprod(W) + sigSq*diag(k)) # TODO: Replace; more stable? # EVEN BETTER: store M; Matrix::solve each system!
+      E_V1 = X %*% W %*% Minv
       E_V2 = lapply(1:n, function(i_) sigSq*Minv + tcrossprod(E_V1[i_,]))
 
       ## Maximization step for sigma^2
       E_V2sum = Reduce('+', E_V2)
 
       sigSq = (
-        norm(Xc, 'F')^2 -
-        2*sum(vapply(1:n, function(n_) E_V1[n_,] %*% t(W) %*% Xc[n_,], numeric(1))) +
+        norm(X, 'F')^2 -
+        2*sum(vapply(1:n, function(n_) E_V1[n_,] %*% t(W) %*% X[n_,], numeric(1))) +
         sum(vapply(1:d, function(d_) W[d_,] %*% E_V2sum %*% W[d_,], numeric(1)))
       )/(n*d)
       sigSq = max(0, sigSq)
@@ -68,16 +75,14 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
       ##################
 
       ## Expectation Step
-      WtW = crossprod(W)
-      if (all(WtW==0)) {stop(paste("StPCA has failed due to numerical instability.",
-        "Try dividing X by it's largest singular value to improve numerical",
-        "stability"))}
-      Minv = chol2inv(chol(WtW + sigSq*diag(k)))
-      E_V1 = Xc %*% W %*% Minv
+      if (all(crossprod(W)==0)) {stop(paste("StPCA has failed due to numerical",
+        "instability. Try dividing X by it's largest singular value."))}
+      Minv = chol2inv(chol(crossprod(W) + sigSq*diag(k)))
+      E_V1 = X %*% W %*% Minv
       E_V2 = lapply(1:n, function(i_) sigSq*Minv + tcrossprod(E_V1[i_,]))
 
       ## Maximization step for W
-      xvsum = Reduce('+', lapply(1:n, function(i_) tcrossprod(Xc[i_,], E_V1[i_,])))
+      xvsum = Reduce('+', lapply(1:n, function(i_) tcrossprod(X[i_,], E_V1[i_,])))
       vvsum.eig = eigen(Reduce('+', E_V2), symmetric=TRUE)
       vvsuminv.eig = list(values=rev(1/vvsum.eig$values),
                           vectors=vvsum.eig$vectors[,k:1])
@@ -101,24 +106,9 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
       }, numeric(d))
       W = W.tilde %*% t(vvsuminv.eig$vectors)
 
-      ####################################
-      ## Convergence criteria & printouts if trace > 0
-      ####################################
-      innerIteration = innerIteration + 1
-      lpNew = stpca.log_posterior(X, K, W, mu, sigSq)
-      if (innerIteration >= maxit.inner) { # Check for maximum iterations reached. If so, print.
-        if (trace>0) {
-          print(paste("Convergence criteria reached:", innerIteration, "iterations"))
-        }
-        innerConverged=TRUE
-      } else if (trace==1 && (innerIteration%%report_iter)==0) {
-        print(paste("Iteration ", innerIteration, ": log likelihood = ",
-                    round(lpNew, 4), " (increase=", round(lpNew-lp, 4),")", sep=''))
-      }
-
-      lp = lpNew
+      lp = stpca.log_posterior(X, K, W, mu, sigSq)
       lps[length(lps)+1] = lp
-    } # end 'innerConverged' loop
+    }
 
     # Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
     # This also has the effect of making each column of W an eigenvector of
@@ -127,72 +117,61 @@ stpca.iterate <- function(stpcaObj, trace=0, report_iter=10, max.dist=Inf,
     W     = W    %*% W.svd$v
     E_V1  = E_V1 %*% W.svd$v
 
-    # TODO: Move out to a different function & get unit tests. Same w/ 'inner' EM loop.
-    ########################
-    ## Tune Hyperparameters
-    ########################
-    outerConverged = (outerIteration>=maxit.outer)
-    if (!outerConverged & (length(beta) > 0)) { # There are HPs to tune
-      levidence = stpca.log_evidence(X, K, W, mu, sigSq)
-      if (trace>=1) {
-        print(paste("Outer iteration ", outerIteration, ": log evidence=",
-                    round(levidence, 4), sep=''))
+    # TODO: Make largest abs value positive
+    # Identify directionality of each component by fixing sign of 1st element to be +ve
+    #P = diag(sign(W[1,]), nrow=k, ncol=k)
+    #W = W %*% P
+    #E_V1 = E_V1 %*% P
+  })
+
+  stpcaObj$W     = vars$W
+  stpcaObj$sigSq = vars$sigSq
+  stpcaObj$V     = as.matrix(vars$E_V1)
+  stpcaObj$ll    = vars$ll
+  stpcaObj$lp    = vars$lp
+  stpcaObj$lps   = vars$lps
+  return(stpcaObj)
+}
+
+stpca.iterate.beta <- function(stpcaObj) {
+  stopifnot(all(c("X", "W", "mu", "sigSq", "locations", "covar.fn",
+                  "covar.fn.d", "D", "max.dist", "beta") %in% names(stpcaObj)))
+  vars = within(unclass(stpcaObj), {
+    min.f = function(beta_) {
+      K_ = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
+      if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) {
+        stop(paste("StPCA has failed because one or more elements of K has",
+                   "become NA/NaN/Inf"))
       }
-
-      min.f = function(beta_) {
-        K_ = covar.fn(locations, beta=beta_, D=D, max.dist=max.dist)
-        if (any(is.na(K_@x)) | any(is.nan(K_@x)) | any(is.infinite(K_@x))) { browser() }
-        return(-stpca.log_evidence(X, K_, W, mu, sigSq))
-      }
-
-      #optObj = optimx(par=beta, fn=min.f, method="Nelder-Mead", control=list(
-      #  kkt=FALSE, starttests=FALSE, usenumDeriv=TRUE, all.methods=FALSE,
-      #  maximize=FALSE, trace=0, dowarn=FALSE
-      #))
-
-      ## New version
-      min.fdf = min.f.generator(X, W, mu, sigSq, locations, covar.fn, covar.fn.d, D=D)
-      min.f   = function(beta_) {min.fdf(beta_)$f}
-      min.df  = function(beta_) {min.fdf(beta_)$df}
-
-      #optObj2.init = suppressWarnings(multimin.init(x=beta, fdf=min.fdf,
-      #                                f=min.f, df=min.df, method="bfgs"))
-      optObj2.init = multimin.init(x=beta, #fdf=min.fdf,
-                                   f=min.f, df=min.df, method="bfgs")
-      optObj2      = multimin.iterate(optObj2.init)
-
-      #beta = coef(optObj)
-      beta = optObj2$x
-      K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
-
-      if (trace>=1) { print(paste("  New beta:", paste(beta, collapse=','))) }
-      outerIteration = outerIteration+1
+      return(-stpca.log_evidence(X, K_, W, mu, sigSq))
     }
-  } # end 'outerConverged' loop
 
-  # TODO: Make largest abs value positive
-  # Identify directionality of each component by fixing sign of 1st element to be +ve
-  #P = diag(sign(W[1,]), nrow=k, ncol=k)
-  #W = W %*% P
-  #E_V1 = E_V1 %*% P
+    # TODO: Get simultanious evaluationw working; should DOUBLE speed!
+    min.fdf = min.f.generator(X, W, mu, sigSq, locations,
+                              covar.fn, covar.fn.d, D=D)
+    min.f   = function(beta_) {min.fdf(beta_)$f}
+    min.df  = function(beta_) {min.fdf(beta_)$df}
 
-  ll = stpca.log_likelihood(X, W, mu, sigSq)
-  dof = d*k - 0.5*k*(k-1) + 3 + length(beta) # Degrees of Freedom for PPCA + #HPs
-  bic = -2*ll + dof*log(n)
+    optObj.init = multimin.init(x=beta, #fdf=min.fdf,
+                                f=min.f, df=min.df, method="bfgs")
+    optObj      = multimin.iterate(optObj.init)
 
-  H = stpca.H(X, W, mu, sigSq, K)
+    beta = optObj$x
+    K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
 
-  stpcaObj$W     = W
-  stpcaObj$sigSq = sigSq
-  stpcaObj$V     = as.matrix(E_V1)
-  stpcaObj$ll    = ll
-  stpcaObj$lp    = lp
-  stpcaObj$lps   = c(stpcaObj$lps, lps)
-  stpcaObj$bic   = bic
-  stpcaObj$beta  = beta
-  stpcaObj$D     = D
-  stpcaObj$K     = K
-  stpcaObj$H     = H
-  stpcaObj$log_evidence = levidence
+    H    = stpca.H(X, W, mu, sigSq, K)
+
+    levidence = stpca.log_evidence(X, K, W, mu, sigSq) # TODO: Remove if this works
+    levidence2 = -optObj$f
+    print(paste(levidence, "-", levidence2, "=", levidence-levidence2))
+
+    levidence3 = -min.f(beta)
+    print(paste(levidence2, "-", levidence3, "=", levidence2-levidence3))
+  })
+
+  stpcaObj$H    = vars$H
+  stpcaObj$K    = vars$K
+  stpcaObj$beta = vars$beta
+  stpcaObj$log_evidence = vars$levidence
   return(stpcaObj)
 }

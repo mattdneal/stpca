@@ -4,21 +4,21 @@
 \alias{stpca.iterate}
 \title{Continue inference in an stpca object.}
 \usage{
-stpca.iterate(stpcaObj, trace = 0, report_iter = 10, max.dist = Inf,
-  maxit.inner = 20, maxit.outer = 5)
+stpca.iterate(stpcaObj, trace = 0, report.iter = 10, maxit.inner = 20,
+  maxit.outer = 5)
 }
 \arguments{
 \item{stpcaObj}{an stpca object.}
 
 \item{trace}{amount of reporting. 0=none, 1=low, 2=high}
 
-\item{report_iter}{Number of iterations between reports}
-
-\item{max.dist}{Maximum distance between features to consider}
+\item{report.iter}{Number of iterations between reports}
 
 \item{maxit.inner}{number of inner iterations}
 
 \item{maxit.outer}{number of outer iterations}
+
+\item{max.dist}{Maximum distance between features to consider}
 }
 \value{
 An \code{stpca} object.

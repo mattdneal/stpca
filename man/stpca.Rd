@@ -5,7 +5,7 @@
 \title{Performs StPCA}
 \usage{
 stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
-  trace = 0, report_iter = 10, max.dist = Inf, maxit.inner = 20,
+  trace = 0, report.iter = 10, max.dist = Inf, maxit.inner = 20,
   maxit.outer = 5)
 }
 \arguments{
@@ -23,7 +23,7 @@ stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
 
 \item{trace}{amount of reporting. 0=none, 1=low, 2=high}
 
-\item{report_iter}{Number of iterations between reports}
+\item{report.iter}{Number of iterations between reports}
 
 \item{max.dist}{Maximum distance between features to consider}
 
