@@ -49,16 +49,9 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
   stopifnot(all(c("X", "W", "mu", "sigSq", "locations") %in% names(stpcaObj)))
   vars = within(unclass(stpcaObj), {
     for (iteration in seq_len(maxit.inner)) {
-      ##################
-      ## EM for sigma^2
-      ##################
-
-      # TODO: Move expectation out to a function, add unit tests!
       ## Expectation Step
-      Minv = chol2inv(chol(crossprod(W) + sigSq*diag(k)))
-      #Minv2 = Matrix::solve(crossprod(W) + sigSq*diag(k)) # TODO: Replace; more stable? # EVEN BETTER: store M; Matrix::solve each system!
-      E_V1 = X %*% W %*% Minv
-      E_V2 = lapply(1:n, function(i_) sigSq*Minv + tcrossprod(E_V1[i_,]))
+      expectations = expectation(X, W, sigSq)
+      E_V1 = expectations$E_V1; E_V2 = expectations$E_V2
 
       ## Maximization step for sigma^2
       E_V2sum = Reduce('+', E_V2)
@@ -70,16 +63,9 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
       )/(n*d)
       sigSq = max(0, sigSq)
 
-      ##################
-      ## EM for W
-      ##################
-
       ## Expectation Step
-      if (all(crossprod(W)==0)) {stop(paste("StPCA has failed due to numerical",
-        "instability. Try dividing X by it's largest singular value."))}
-      Minv = chol2inv(chol(crossprod(W) + sigSq*diag(k)))
-      E_V1 = X %*% W %*% Minv
-      E_V2 = lapply(1:n, function(i_) sigSq*Minv + tcrossprod(E_V1[i_,]))
+      expectations = expectation(X, W, sigSq)
+      E_V1 = expectations$E_V1; E_V2 = expectations$E_V2
 
       ## Maximization step for W
       xvsum = Reduce('+', lapply(1:n, function(i_) tcrossprod(X[i_,], E_V1[i_,])))
@@ -116,12 +102,6 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
     W.svd = svd(W)
     W     = W    %*% W.svd$v
     E_V1  = E_V1 %*% W.svd$v
-
-    # TODO: Make largest abs value positive
-    # Identify directionality of each component by fixing sign of 1st element to be +ve
-    #P = diag(sign(W[1,]), nrow=k, ncol=k)
-    #W = W %*% P
-    #E_V1 = E_V1 %*% P
   })
 
   stpcaObj$W     = vars$W
@@ -174,4 +154,13 @@ stpca.iterate.beta <- function(stpcaObj) {
   stpcaObj$beta = vars$beta
   stpcaObj$log_evidence = vars$levidence
   return(stpcaObj)
+}
+
+expectation <- function(X, W, sigSq) {
+  if (all(crossprod(W)==0)) {stop(paste("StPCA has failed due to numerical",
+    "instability. Try dividing X by it's largest singular value."))}
+  M = Matrix(crossprod(W) + sigSq*diag(ncol(W)))
+  E_V1 = t(solve(M, t(X %*% W)))
+  E_V2 = lapply(1:nrow(X), function(i_) sigSq*solve(M) + tcrossprod(E_V1[i_,]))
+  return(list(E_V1=E_V1, E_V2=E_V2))
 }
