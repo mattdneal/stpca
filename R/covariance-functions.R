@@ -200,15 +200,47 @@ cov.RQ.beta0 <- function(X, locations, k) {
 }
 
 
-cov.independent <- function(X, X2=NA, beta=c(), D=NA, max.dist=NA) {
-  stopifnot(nrow(X) == length(beta))
-  return(sparseMatrix(i=1:nrow(X), j=1:nrow(X), x=exp(beta), dims=c(nrow(X), nrow(X))))
+#' Independant covariance function. Is zero everywhere except for inputs with
+#' zero distance. Has single hyperparameter of log signal variance. All nonzero
+#' outputs are equal to the signal variance.
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta The single hyperparameter: the log of the signal variance
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.independent <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==1)
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2, max.dist=1e-8)
+  }
+  D@x=1/D@x
+  D = as(D, "TsparseMatrix")
+  keep = which(is.infinite(D@x))
+  return(sparseMatrix(i=D@i[keep], j=D@j[keep], x=rep(exp(beta), length(keep)),
+         dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=TRUE))
 }
 
-cov.independent.d <- function(X, X2=NA, beta=c(), D=NA, max.dist=NA) {
-  return(lapply(1:nrow(X), function(i) {
-    sparseMatrix(i=i, j=i, x=1, dims=c(nrow(X), nrow(X)))
-  }))
+#' Derivative of the independent covariance function. Does not depend
+#' on the balue of \sigma^2_k; is always 1 everywhere the inputs have
+#' zero distance, and zero everywhere else.
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta The single hyperparameter: the log of the signal variance
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.independent.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==1)
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2, max.dist=1e-8)
+  }
+  D = as(D, "TsparseMatrix")
+  keep = which(D@x==0)
+  return(list(sparseMatrix(i=D@i[keep], j=D@j[keep], x=rep(exp(beta), length(keep)),
+         dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=TRUE)))
 }
 
 cov.triangular <- function(X, beta, ...) {
