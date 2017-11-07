@@ -19,17 +19,17 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   stopifnot(all(is.finite(X)))
 
   ## Define commonly used variables.
-  X  = scale(X, scale=FALSE) # Centered data: nxd
-  mu = attr(X, "scaled:center")
-  n  = nrow(X)               # Number of samples
-  d  = ncol(X)               # Original dimensionality
+  Xc  = scale(X, scale=FALSE) # Centered data: nxd
+  mu = attr(Xc, "scaled:center")
+  n  = nrow(Xc)               # Number of samples
+  d  = ncol(Xc)               # Original dimensionality
 
   ## Perform sanity checks.
-  stopifnot(ncol(X) > k) # Cannot deal with complete/overcomplete case
-  stopifnot(nrow(X) >= k) # TODO: Check if I can deal with equality case
+  stopifnot(ncol(Xc) > k) # Cannot deal with complete/overcomplete case
+  stopifnot(nrow(Xc) >= k) # TODO: Check if I can deal with equality case
 
   ## Initialize W and sigma^2 from PPCA
-  covar.svd = svd(X/sqrt(n), nu=0, nv=k)
+  covar.svd = svd(Xc/sqrt(n), nu=0, nv=k)
   covar.eigval = covar.svd$d^2
   sigSq = sum(covar.eigval[-(1:k)])/(d-k)
   W     = covar.svd$v %*% diag(sqrt(covar.eigval[1:k] - sigSq), ncol=k, nrow=k)
@@ -51,19 +51,19 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   }
   stopifnot(is(K, "Matrix"))
 
-  lp   = stpca.log_posterior(X, K, W, mu, sigSq) # Current log posterior
-  ll   = stpca.log_likelihood(X, W, mu, sigSq)
+  lp   = stpca.log_posterior(Xc, K, W, rep(0,d), sigSq) # Current log posterior
+  ll   = stpca.log_likelihood(Xc, W, rep(0,d), sigSq)
   dof  = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
   bic  = -2*ll + dof*log(n)
 
-  stpcaObj = list(n     = nrow(X),
-                  d     = ncol(X),
+  stpcaObj = list(n     = nrow(Xc),
+                  d     = ncol(Xc),
                   k     = k,
-                  X     = X,
+                  Xc    = Xc,
                   W     = W,
                   sigSq = sigSq,
                   mu    = mu,
-                  V     = X %*% W %*% chol2inv(chol(crossprod(W) + sigSq*diag(k))),
+                  V     = Xc %*% W %*% chol2inv(chol(crossprod(W) + sigSq*diag(k))),
                   ll    = ll,
                   lp    = lp,
                   lps   = lp,
