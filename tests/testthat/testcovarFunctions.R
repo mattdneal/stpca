@@ -49,7 +49,7 @@ test_that("cov.SE can accept precomputed distance matrix", {
   expect_equal(K1, K2)
 })
 
-test_that("cov.independant works as expected", {
+test_that("cov.independent works as expected", {
   set.seed(1)
   beta = rnorm(1)
   K = cov.independent(locations, beta=beta)
@@ -58,7 +58,7 @@ test_that("cov.independant works as expected", {
   expect_equivalent(K, Diagonal(d, exp(beta)))
 })
 
-test_that("cov.independant.d matches numerical gradient", {
+test_that("cov.independent.d matches numerical gradient", {
   set.seed(1)
   beta = rnorm(1)
   dK = cov.independent.d(locations, beta=beta)
@@ -66,11 +66,11 @@ test_that("cov.independant.d matches numerical gradient", {
   jac.num = c(jacobian(function(beta_) {
     c(as.matrix(cov.independent(locations, beta=beta_)))
   }, x=beta))
-  jac.analytic = c(as.matrix(dK))
+  jac.analytic = c(as.matrix(dK[[1]]))
   expect_equivalent(jac.analytic, jac.num)
 })
 
-test_that("cov.independant can accept precomputed distance matrix", {
+test_that("cov.independent can accept precomputed distance matrix", {
   set.seed(1)
   beta = rnorm(1)
   K1 = cov.independent(locations, beta=beta)
