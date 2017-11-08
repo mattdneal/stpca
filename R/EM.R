@@ -32,22 +32,3 @@ EM.M.W <- function(Xc, sigSq, V, Vvar, K) {
 
   return(sylSolve(A, B, C))
 }
-
-#' Solve the sylvester equation AW + WB = C for W.
-#'
-#' @param A d x d positive definite matrix
-#' @param B k x k positive definite matrix
-#' @param C d x k matrix
-#' @return The solution W
-#' @import Matrix
-sylSolve <- function(A, B, C) {
-  Beig = eigen(B, symmetric=TRUE)
-  Ctil = C %*% Beig$vectors
-  Wtil = vapply(1:ncol(C), function(i_) {
-    lhs = A
-    Matrix::diag(lhs) = Matrix::diag(lhs) + Beig$values[i_]
-    return(as.vector(Matrix::solve(lhs, Ctil[,i_])))
-  }, numeric(nrow(C)))
-  W = Wtil %*% t(Beig$vectors)
-  return(W)
-}
