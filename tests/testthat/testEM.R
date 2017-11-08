@@ -37,7 +37,6 @@ X = dataset$X
 beta0 = cov.SE.beta0(X, locations, k)
 
 stpcaObj = stpca(X, k, locations, cov.SE, cov.SE.d, beta0, trace=0, maxit.inner=0, maxit.outer=0)
-#stpcaObj = stpca.iterate.beta(stpcaObj) # Update beta, now the thetas need updating
 
 context("maximisation in sigma^2")
 
@@ -100,7 +99,22 @@ test_that("Iterating Expectation and W maximisation finds local max", {
 
   for (i in 1:300) {
     Wpert = W + 1e-5*matrix(rnorm(nrow(W)*ncol(W)), nrow=nrow(W))
-    lpPert = stpca.log_posterior(Xc, K, W, mu, sigSq)
+    lpPert = stpca.log_posterior(Xc, K, Wpert, mu, sigSq)
     expect_gte(lp, lpPert)
+  }
+})
+
+context("Full EM procedure")
+
+test_that("stpca.iterate.theta maximises the log posterior", {
+  set.seed(1)
+  stpcaObj = stpca.iterate.theta(stpcaObj, maxit.inner=50)
+  lp = with(stpcaObj, stpca.log_posterior(Xc, K, W, rep(0,ncol(Xc)), sigSq))
+
+  for (i in 1:800) {
+    Wpert  = stpcaObj$W + 1e-5*matrix(rnorm(d*k), nrow=d, ncol=k)
+    sspert = stpcaObj$sigSq + 1e-5*rnorm(1)
+    lpPert = stpca.log_posterior(Xc, K, Wpert, mu, sspert)
+    expect_gt(lp, lpPert)
   }
 })
