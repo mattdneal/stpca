@@ -102,6 +102,7 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
 #' @export
 #' @include statistical-quantities.R
 #' @include evidence-approximation.R
+#' @import maxLik
 stpca.iterate.beta <- function(stpcaObj) {
   vars = within(unclass(stpcaObj), {
     logLik = function(beta_) {
