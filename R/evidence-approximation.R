@@ -191,23 +191,47 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   Xc = sweep(X, 2, mu)
 
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
-  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+  Cinv = forceSymmetric(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+
+  Kinv = tryCatch({
+    solve(K)
+  }, error = function(e) {
+    stop(paste("Cannot invert K"))
+  })
 
   HW = list()
   for (k_ in 1:k) {
     wi = W[,k_,drop=F]
-    HW[[k_]] = Matrix(
-      solve(K) +
-      Cinv*as.numeric(t(wi)%*%Cinv%*%t(Xc)%*%Xc%*%Cinv%*%wi -
-                      n*t(wi)%*%Cinv%*%wi + n) +
-      Cinv%*%(
-        t(Xc)%*%Xc%*%Cinv%*%wi%*%t(wi) +
-        wi%*%t(wi)%*%Cinv%*%t(Xc)%*%Xc +
-        as.numeric(t(wi)%*%Cinv%*%wi - 1)*t(Xc)%*%Xc -
-        n*wi%*%t(wi)
-      )%*%Cinv, forceCheck=TRUE) # TODO: use crossprod on wi%*%t(wi)
-  }
+    HW[[k_]] = Matrix(forceSymmetric(solve(K,
+      Diagonal(d) +
+      #Cinv*as.numeric(t(wi)%*%Cinv%*%t(Xc)%*%Xc%*%Cinv%*%wi -
+      #                n*t(wi)%*%Cinv%*%wi + n) +
+      K%*%Cinv*as.numeric(tcrossprod(t(wi)%*%Cinv%*%t(Xc))
+                      - n*t(wi)%*%Cinv%*%wi + n) +
+      #Cinv%*%(
+      #  t(Xc)%*%Xc%*%Cinv%*%wi%*%t(wi) +
+      #  wi%*%t(wi)%*%Cinv%*%t(Xc)%*%Xc +
+      #  as.numeric(t(wi)%*%Cinv%*%wi - 1)*t(Xc)%*%Xc -
+      #  n*wi%*%t(wi)
+      #)%*%Cinv, forceCheck=TRUE)
+      #Cinv%*%(
+      #  crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
+      #  tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
+      #  as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
+      #  n*tcrossprod(wi)
+      #)%*%Cinv,
+      K%*%tcrossprod(Cinv, crossprod(Cinv, (
+        crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
+        tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
+        as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
+        n*tcrossprod(wi)
+      )))
+    )), forceCheck=TRUE)
 
+    # Symmetrize: the matrix is *not* symmetric because of numerical issues
+    # & order of operations!
+    HW[[k_]] = 0.5*(HW[[k_]] + t(HW[[k_]]))
+  }
   return(HW)
 }
 
