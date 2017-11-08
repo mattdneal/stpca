@@ -41,6 +41,81 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
   return(logZ)
 }
 
+#' Compute the derivative of the approximate log evidence with respect to the
+#' value of beta provided.
+#'
+#' @param X Data
+#' @param K Prior covariance matrix
+#' @param W Loadings matrix
+#' @param mu
+#' @param sigSq
+#' @param beta
+#' @param dK
+#' @return Partial derivatives of approximate log evidence
+#' @export
+stpca.log_evidence_d <- function(X, K, W, mu, sigSq, beta, dK) {
+  HW = tryCatch({
+    stpca.H.W(X, W, mu, sigSq, K)
+  }, error = function(err) {
+    stop(paste("Error constructing H using beta=",
+               paste(round(beta, digits=4), collapse=",")))
+  })
+
+  logPrior.d = stpca.log_prior_d(W, beta, K, dK)
+  logDetH.d  = stpca.log_det_H_d(K, dK, HW)
+
+  logEvidence.d = vapply(seq_along(beta), function(i) {
+    logPrior.d[i] - 0.5*logDetH.d[i]
+  }, numeric(1))
+  names(logEvidence.d) = names(beta)
+  return(logEvidence.d)
+}
+
+#' Compute the partial derivatives of the log prior with respect to the
+#' hyperparameters with the value of beta provided.
+#'
+#' @param W Loadings matrix
+#' @param beta hyperparameter values
+#' @param K Prior covariance matrix
+#' @param dK Prior covariance matrix derivatives
+#' @return Partial derivatives of log prior
+#' @export
+stpca.log_prior_d <- function(W, beta, K, dK) {
+  deriv = numeric(length(beta))
+  KinvW = solve(K, W)
+
+  for (i in seq_along(beta)) {
+    term1 = ncol(W) * sum(diag( solve(K, dK[[i]])  ))
+
+    term2 = -sum(diag( tcrossprod(KinvW)%*%dK[[i]] ))
+    #term2b = -sum(vapply(1:ncol(W), function(k_) {
+    #  as.numeric(KinvW[,k_] %*% dK[[i]] %*% KinvW[,k_])
+    #}, numeric(1)))
+
+    deriv[i] = -0.5*(term1 + term2)
+  }
+  names(deriv) = names(deriv)
+  return(deriv)
+}
+
+#' Compute the partial derivatives of log(det(H)) with respect to the
+#' hyperparameters with the value of beta provided.
+#'
+#' @param K Prior covariance matrix
+#' @param dK Prior covariance matrix derivatives
+#' @param HW list of blocks H_{w_i}
+#' @return Partial derivatives of log|H|
+#' @export
+stpca.log_det_H_d <- function(K, dK, HW) {
+  logDetH.d = numeric(length(dK))
+  for (i in seq_along(dK)) {
+    logDetH.d[i] = -sum(vapply(HW, function(Hw) {
+      sum(diag( solve(K%*%Hw%*%K, dK[[i]]) ))
+    }, numeric(1)))
+  }
+  return(logDetH.d)
+}
+
 #' Compute bayes factor
 #'
 #' @param X Data
