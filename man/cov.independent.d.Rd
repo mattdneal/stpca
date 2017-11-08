@@ -3,7 +3,7 @@
 \name{cov.independent.d}
 \alias{cov.independent.d}
 \title{Derivative of the independent covariance function. Does not depend
-on the balue of \sigma^2_k; is always 1 everywhere the inputs have
+on the value of \eqn{\sigma^2_k}; is always 1 everywhere the inputs have
 zero distance, and zero everywhere else.}
 \usage{
 cov.independent.d(X, X2, beta, D = NA, ...)
@@ -17,6 +17,6 @@ cov.independent.d(X, X2, beta, D = NA, ...)
 }
 \description{
 Derivative of the independent covariance function. Does not depend
-on the balue of \sigma^2_k; is always 1 everywhere the inputs have
+on the value of \eqn{\sigma^2_k}; is always 1 everywhere the inputs have
 zero distance, and zero everywhere else.
 }

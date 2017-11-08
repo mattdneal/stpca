@@ -23,7 +23,7 @@ Collate:
     'stpca.iterate.R'
     'stpca.init.R'
     'stpca.R'
-Imports: functional, MASS, fields, gsl, Matrix, numDeriv
+Imports: functional, MASS, fields, maxLik, Matrix, numDeriv
 ByteCompile: true
 RoxygenNote: 6.0.1.9000
 Suggests: testthat
