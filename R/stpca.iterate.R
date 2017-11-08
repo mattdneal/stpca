@@ -57,19 +57,19 @@ stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
 stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
   vars = within(unclass(stpcaObj), {
     for (iteration in seq_len(maxit.inner)) {
-      # Expectation Step
-      expectations = EM.E(Xc, W, sigSq)
-      V = expectations$V; Vvar = expectations$Vvar
-
-      # Maximization step for sigma^2
-      sigSq = EM.M.sigSq(Xc, W, V, Vvar)
-
-      # Second expectation Step
+      # Expectation step
       expectations = EM.E(Xc, W, sigSq)
       V = expectations$V; Vvar = expectations$Vvar
 
       # Maximization step for W
       W = EM.M.W(Xc, sigSq, V, Vvar, K)
+
+      # Second expectation Step
+      expectations = EM.E(Xc, W, sigSq)
+      V = expectations$V; Vvar = expectations$Vvar
+
+      # Maximization step for sigma^2
+      sigSq = EM.M.sigSq(Xc, W, V, Vvar)
 
       # Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
       # This also has the effect of making each column of W an eigenvector of
