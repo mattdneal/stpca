@@ -1,4 +1,47 @@
-#' Squared exponential covariance function
+#' Noisy SE covariance function
+#'
+#' The sum of the Squared Exponential and the independent covariance functions.
+#' Interpreted as the smooth SE covariance function plus iid noise. This is
+#' implemented as the sum of two covariance functions, with the first two
+#' elements of beta being sent to the SE covariance function, and the last
+#' element being sent to the independent covariance function.
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta Hyperparameters; beta[1] is the log signal variance, beta[2] is the log length scale, beta[3] is the variance of the noise.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.SE <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==3)
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2)
+  }
+  K = cov.SE(X, X2, beta=beta[1:2]) + cov.independent(X, X2, beta=beta[3])
+  return(K)
+}
+
+#' Partial derivatives of the noisy SE covariance function
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta Hyperparameters; beta[1] is the log signal variance, beta[2] is the log length scale, beta[3] is the variance of the noise.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.SE.d <- function(X, X2, beta, D=NA, ...) {
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2)
+  }
+  return(append(cov.SE.d(X, X2, beta[1:2], D),
+                cov.independent.d(X, X2, beta[3], D)))
+}
+
+#' Squared exponential covariance function.
+#'
+#' The squared exponential covariance function. This produces a semidefinite
+#' covariance matrix, and should only be used when constructing new covariance
+#' functions. E.g., the squared exponential plus independant.
 #'
 #' @param X Matrix of data
 #' @param X2 (optional) second matrix of data; if omitted, X is used.
