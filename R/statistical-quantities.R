@@ -99,3 +99,19 @@ stpca.log_prior <- function(K, W) {
 stpca.log_posterior <- function(X, K, W, mu, sigSq) {
   return(stpca.log_likelihood(X, W, mu, sigSq) + stpca.log_prior(K, W))
 }
+
+stpca.complete_log_posterior <- function(X, V, W, mu, sigSq, K) {
+  require(mvtnorm)
+  X = sweep(X, 2, mu)
+  pr1 = sum(dnorm(V, log=TRUE)) # log p(V)
+  pr2 = stpca.log_prior(K, W) # log p(theta)
+  pr3 = sum(vapply(1:nrow(X), function(i) { # log p(X | theta, V)
+    dmvnorm(X[i,],
+    mean=W %*% V[i,],
+    sigma=sigSq*diag(ncol(X)),
+    log=TRUE)
+  }, numeric(1)))
+  return(pr1 + pr2 + pr3)
+}
+
+
