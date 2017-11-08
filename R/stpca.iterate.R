@@ -10,7 +10,7 @@
 #' @export
 #' @include statistical-quantities.R
 #' @include evidence-approximation.R
-#' @import gsl
+#' @import maxLik
 #' @import fields
 #' @import Matrix
 stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,

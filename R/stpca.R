@@ -17,7 +17,7 @@
 #' @include statistical-quantities.R
 #' @include stpca.init.R
 #' @include stpca.iterate.R
-#' @import gsl
+#' @import maxLik
 #' @import fields
 #' @examples
 #' library(fields)
