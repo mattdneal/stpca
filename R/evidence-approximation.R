@@ -29,10 +29,6 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
   # Centered X
   Xc = sweep(X, 2, mu)
 
-  # Compute C^{-1}, which is used all over the place
-  R = Matrix::chol(crossprod(W) + sigSq*diag(k))
-  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
-
   H = stpca.H(X, W, mu, sigSq, K)
   logDetH = sum(vapply(H, function(Hblock) {
      as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
