@@ -237,10 +237,13 @@ cov.independent.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2, max.dist=1e-8)
   }
+  D@x=1/D@x
   D = as(D, "TsparseMatrix")
-  keep = which(D@x==0)
-  return(list(sparseMatrix(i=D@i[keep], j=D@j[keep], x=rep(exp(beta), length(keep)),
-         dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=TRUE)))
+  keep = which(is.infinite(D@x))
+  return(list(as(
+    sparseMatrix(i=D@i[keep], j=D@j[keep], x=rep(exp(beta), length(keep)),
+                 dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=TRUE),
+    "symmetricMatrix")))
 }
 
 cov.triangular <- function(X, beta, ...) {
