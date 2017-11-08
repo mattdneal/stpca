@@ -51,6 +51,8 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
   }
   stopifnot(is(K, "Matrix"))
 
+  expectations = EM.E(Xc, W, sigSq)
+
   lp   = stpca.log_posterior(Xc, K, W, rep(0,d), sigSq) # Current log posterior
   ll   = stpca.log_likelihood(Xc, W, rep(0,d), sigSq)
   dof  = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
@@ -63,7 +65,8 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   W     = W,
                   sigSq = sigSq,
                   mu    = mu,
-                  V     = Xc %*% W %*% chol2inv(chol(crossprod(W) + sigSq*diag(k))),
+                  V     = expectations$V,
+                  Vvar  = expectations$Vvar,
                   ll    = ll,
                   lp    = lp,
                   lps   = lp,
