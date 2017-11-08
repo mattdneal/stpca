@@ -223,7 +223,7 @@ cov.independent <- function(X, X2, beta, D=NA, ...) {
 }
 
 #' Derivative of the independent covariance function. Does not depend
-#' on the balue of \sigma^2_k; is always 1 everywhere the inputs have
+#' on the value of \eqn{\sigma^2_k}; is always 1 everywhere the inputs have
 #' zero distance, and zero everywhere else.
 #'
 #' @param X Matrix of data
