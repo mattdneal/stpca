@@ -33,9 +33,9 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
     if (length(Dtriples$ra) == nrow(X) * nrow(X2)) {
       # Covariance matrix is dense: all points lie within maximum distance
       if (symmetric) {
-        return(Matrix(rdist(X)))
+        return(Matrix(rdist(X), sparse=FALSE))
       } else {
-        return(Matrix(rdist(X, X2)))
+        return(Matrix(rdist(X, X2), sparse=FALSE))
       }
     }
 
@@ -50,9 +50,9 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
     }
   } else {
     if (symmetric) {
-      D = Matrix(rdist(X))
+      D = Matrix(rdist(X), sparse=FALSE)
     } else {
-      D = Matrix(rdist(X, X2))
+      D = Matrix(rdist(X, X2), sparse=FALSE)
     }
   }
   return(D)
