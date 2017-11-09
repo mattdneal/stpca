@@ -16,10 +16,8 @@
 #' @import Matrix
 cov.noisy.RQ <- function(X, X2, beta, D=NA, ...) {
   stopifnot(length(beta)==4)
-  if (all(is.na(D))) {
-    D = distanceMatrix(X, X2)
-  }
-  K = cov.RQ(X, X2, beta=beta[1:3]) + cov.independent(X, X2, beta=beta[4])
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
+  K = cov.RQ(X, X2, beta[1:3], D) + cov.independent(X, X2, beta[4], D)
   return(K)
 }
 
@@ -35,9 +33,7 @@ cov.noisy.RQ <- function(X, X2, beta, D=NA, ...) {
 #' @import Matrix
 cov.noisy.RQ.d <- function(X, X2, beta, D=NA, ...) {
   stopifnot(length(beta)==4)
-  if (all(is.na(D))) {
-    D = distanceMatrix(X, X2)
-  }
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   return(append(cov.RQ.d(X, X2, beta[1:3], D),
                 cov.independent.d(X, X2, beta[4], D)))
 }
@@ -61,7 +57,8 @@ cov.noisy.SE <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  K = cov.SE(X, X2, beta=beta[1:2]) + cov.independent(X, X2, beta=beta[3])
+  K = (cov.SE(X, X2, beta=beta[1:2], D=D) +
+       cov.independent(X, X2, beta=beta[3], D=D))
   return(K)
 }
 
@@ -74,9 +71,8 @@ cov.noisy.SE <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.SE.d <- function(X, X2, beta, D=NA, ...) {
-  if (all(is.na(D))) {
-    D = distanceMatrix(X, X2)
-  }
+  stopifnot(length(beta)==3)
+  if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   return(append(cov.SE.d(X, X2, beta[1:2], D),
                 cov.independent.d(X, X2, beta[3], D)))
 }
