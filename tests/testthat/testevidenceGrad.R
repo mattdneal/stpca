@@ -20,12 +20,12 @@ for (covfun in 1:2) {
     covar.fun   = cov.independent
     covar.fun.d = cov.independent.d
     beta0       = log(1.1)
-    context("Evidence gradient with independent covar fun (well conditioned)")
+    context("Evidence gradient with independent covar fun")
   } else {
-    covar.fun   = cov.SE
-    covar.fun.d = cov.SE.d
-    beta0       = cov.SE.beta0(X, locations, k)
-    context("Evidence gradient with SE covar fun (badly conditioned)")
+    covar.fun   = cov.noisy.SE
+    covar.fun.d = cov.noisy.SE.d
+    beta0       = c(cov.SE.beta0(X, locations, k), log(1e-2))
+    context("Evidence gradient with SE covar fun")
   }
 
   stpcaObj = stpca.init(X, k, locations, covar.fun, covar.fun.d, beta0, trace=0)
