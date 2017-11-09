@@ -106,9 +106,8 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  #D@x = exp(beta[1]) * exp(-0.5*(D@x^2)*exp(-2*beta[2]))
-  D = exp(beta[1]) * exp(-0.5*(D^2)*exp(-2*beta[2]))
-  #Matrix::diag(D) = Matrix::diag(D)+1e-12
+  D@x = exp(beta[1]) * exp(-0.5*(D@x*D@x)*exp(-2*beta[2]))
+  #D = exp(beta[1]) * exp(-0.5*(D^2)*exp(-2*beta[2]))
   return(D)
 }
 
@@ -150,8 +149,10 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
-  dK1 = exp(beta[1])*exp(-0.5*(D^2)*exp(-2*beta[2]))
-  dK2 = exp(beta[2])*(D^2)*exp(-3*beta[2]) * dK1
+  dK1 = D
+  dK1@x = exp(beta[1])*exp(-0.5*(D@x*D@x)*exp(-2*beta[2]))
+  dK2 = D
+  dK2@x = exp(beta[2])*(D@x*D@x)*exp(-3*beta[2]) * dK1@x
   return(list(dK1, dK2))
 }
 
@@ -208,7 +209,7 @@ cov.SE.beta0 <- function(X, locations, k) {
 cov.RQ <- function(X, X2, beta, D=NA, ...) {
   stopifnot(length(beta)==3)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
-  D = exp(beta[1])*(1 + (D*D)*0.5*exp(-2*beta[2]-beta[3]))^(-exp(beta[3]))
+  D@x = exp(beta[1])*(1 + (D@x*D@x)*0.5*exp(-2*beta[2]-beta[3]))^(-exp(beta[3]))
   return(D)
 }
 
