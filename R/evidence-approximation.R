@@ -22,6 +22,10 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
     sigSq = stpcaObj$sigSq
   }
 
+  if (!any(is.finite(diag(K)))) {
+    return(-Inf)
+  }
+
   n = nrow(X)
   d = ncol(X)
   k = ncol(W)
