@@ -1,87 +1,84 @@
-context("covariance functions")
-
 library(Matrix)
+set.seed(1)
 
 locations = expand.grid(seq(-1, 1, length=10), seq(-1, 1, length=10))
-beta = log(c(1.5, 0.9))
 d = nrow(locations)
 
-test_that("cov.SE works as expected", {
-  K = cov.SE(locations, beta=beta)
-  expect_is(K, "Matrix")
-  expect_that(all(is.finite(K)), is_true())
-  expect_equal(diag(K), rep(exp(beta[1]), nrow(locations)))
-  expect_lt(max(K[upper.tri(K, diag=FALSE)]), exp(beta[1]))
-})
+for (cfi in 1:5) {
+  if (cfi==1) {
+    cov.fun.str = "cov.SE"
+    cov.fun   = cov.SE
+    cov.fun.d = cov.SE.d
+    nHPs      = 2
+  } else if (cfi==2) {
+    cov.fun.str = "cov.independent"
+    cov.fun   = cov.independent
+    cov.fun.d = cov.independent.d
+    nHPs      = 1
+  } else if (cfi==3) {
+    cov.fun.str = "cov.RQ"
+    cov.fun   = cov.RQ
+    cov.fun.d = cov.RQ.d
+    nHPs      = 3
+  } else if (cfi==4) {
+    cov.fun.str = "cov.noisy.SE"
+    cov.fun   = cov.noisy.SE
+    cov.fun.d = cov.noisy.SE.d
+    nHPs      = 3
+  } else {
+    cov.fun.str = "cov.noisy.RQ"
+    cov.fun   = cov.noisy.RQ
+    cov.fun.d = cov.noisy.RQ.d
+    nHPs      = 4
+  }
 
-test_that("cov.SE.d matches numerical gradient", {
-  dK = cov.SE.d(locations, beta=beta)
+  context(cov.fun.str)
+  for (replicate in 1:5) {
+    beta = rnorm(nHPs)
+    K    = cov.fun(  locations, beta=beta)
+    dK   = cov.fun.d(locations, beta=beta)
+    D    = distanceMatrix(locations)
 
-  # Derivative wrt variance at zero distance should always be exp(beta[1])
-  expect_equal(diag(dK[[1]]), rep(exp(beta[1]), d))
+    test_that(paste(cov.fun.str,"returns valid covariance matrix"), {
+      expect_is(K, "Matrix")
+      expect_that(all(is.finite(K)), is_true())
+      expect_that(isSymmetric(K), is_true())
+    })
 
-  # Derivative wrt lengthscale at zero distance should always be 0
-  expect_equal(diag(dK[[2]]), rep(0, d))
+    test_that(paste(cov.fun.str,"gradient matches numerical gradient"), {
+      jac.num = jacobian(function(beta_) {
+        c(as.matrix(cov.fun(locations, beta=beta_)))
+      }, x=beta)
+      jac.analytic = vapply(dK, function(dKi) c(as.matrix(dKi)), numeric(d*d))
+      expect_equal(jac.analytic, jac.num)
+    })
 
-  jac.num = jacobian(function(beta_) {
-    c(as.matrix(cov.SE(locations, beta=beta_)))
-  }, x=beta)
-  jac.analytic = vapply(dK, function(dKi) c(as.matrix(dKi)), numeric(d*d))
-  expect_equal(jac.analytic, jac.num)
+    test_that(paste(cov.fun.str,"can accept precomuted distance matrix"), {
+      K2 = cov.fun(locations, beta=beta, D=D)
+      expect_equal(K, K2)
+    })
 
-  beta=rnorm(2)
-  dK = cov.SE.d(locations, beta=beta)
-  jac.num = jacobian(function(beta_) {
-    c(as.matrix(cov.SE(locations, beta=beta_)))
-  }, x=beta)
-  jac.analytic = vapply(dK, function(dKi) c(as.matrix(dKi)), numeric(d*d))
-  expect_equal(jac.analytic, jac.num)
-})
+    test_that(paste(cov.fun.str,"can accept precomputed sparse distance matrix, giving sparse result"), {
+      Ds = distanceMatrix(locations, max.dist=1.2)
+      Ks = cov.fun(locations, beta=beta, D=Ds)
+      supported = which(D<1.2)
+      expect_equal(Ks[supported], K[supported])
+      expect_equal(Ks[-supported], rep(0, d*d-length(supported)))
+    })
 
-test_that("cov.SE can accept precomputed distance matrix", {
-  set.seed(1)
-  beta = rnorm(2)
-  K1 = cov.SE(locations, beta=beta)
+    test_that(paste(cov.fun.str,"derivatives can accept precomuted distance matrix"), {
+      dK2 = cov.fun.d(locations, beta=beta, D=D)
+      expect_equal(dK, dK2)
+    })
 
-  D = distanceMatrix(locations) # Nonsparse: explicit zeroes
-  K2 = cov.SE(locations, beta=beta, D=D)
-
-  expect_equal(K1, K2)
-})
-
-test_that("cov.independent works as expected", {
-  set.seed(1)
-  beta = rnorm(1)
-  K = cov.independent(locations, beta=beta)
-  expect_is(K, "Matrix")
-  expect_that(all(is.finite(K)), is_true())
-  expect_equivalent(K, Diagonal(d, exp(beta)))
-})
-
-test_that("cov.independent.d matches numerical gradient", {
-  set.seed(1)
-  beta = rnorm(1)
-  dK = cov.independent.d(locations, beta=beta)
-
-  jac.num = c(jacobian(function(beta_) {
-    c(as.matrix(cov.independent(locations, beta=beta_)))
-  }, x=beta))
-  jac.analytic = c(as.matrix(dK[[1]]))
-  expect_equivalent(jac.analytic, jac.num)
-})
-
-test_that("cov.independent can accept precomputed distance matrix", {
-  set.seed(1)
-  beta = rnorm(1)
-  K1 = cov.independent(locations, beta=beta)
-
-  D = distanceMatrix(locations) # Nonsparse: explicit zeroes
-  K2 = cov.independent(locations, beta=beta, D=D)
-
-  expect_equal(K1, K2)
-
-  D = distanceMatrix(locations, max.dist=0.5) # Sparse
-  K3 = cov.independent(locations, beta=beta, D=D)
-
-  expect_equal(K1, K3)
-})
+    test_that(paste(cov.fun.str,"derivatives can accept precomputed sparse distance matrix, giving sparse result"), {
+      Ds  = distanceMatrix(locations, max.dist=1.2)
+      dKs = cov.fun.d(locations, beta=beta, D=Ds)
+      supported = which(D<1.2)
+      for (i in 1:length(dKs)) {
+        expect_equal(dKs[[i]][supported], dK[[i]][supported])
+        expect_equal(dKs[[i]][-supported], rep(0, d*d-length(supported)))
+      }
+    })
+  }
+}
