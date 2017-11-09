@@ -2,7 +2,7 @@
 % Please edit documentation in R/covariance-functions.R
 \name{cov.SE}
 \alias{cov.SE}
-\title{Squared exponential covariance function}
+\title{Squared exponential covariance function.}
 \usage{
 cov.SE(X, X2, beta, D = NA, ...)
 }
@@ -14,7 +14,9 @@ cov.SE(X, X2, beta, D = NA, ...)
 \item{beta}{Hyperparameters; beta[1] is the log signal variance, beta[2] is the log length scale.}
 }
 \description{
-Squared exponential covariance function
+The squared exponential covariance function. This produces a semidefinite
+covariance matrix, and should only be used when constructing new covariance
+functions. E.g., the squared exponential plus independant.
 }
 \examples{
 # Confirm that diagonal of covariance matrix is the specified variance, and

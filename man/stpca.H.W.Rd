@@ -31,7 +31,7 @@ K = cov.SE(matrix(1:10, ncol=1), beta=log(c(1, 3)))
 library(numDeriv)
 library(Matrix)
 Hw1.analytic = stpca:::stpca.H.W(X, W, mu, sigSq, K)[[1]]
-Hw1.numeric  = Matrix(hessian(function(w) {
+Hw1.numeric  = Matrix(numDeriv::hessian(function(w) {
   W_ = W
   W_[,1] = w
   -stpca.log_posterior(X, K, W_, mu, sigSq)

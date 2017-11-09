@@ -52,6 +52,6 @@ X = X/sd(X) # Scale for numerical reasons
 locations = ozone2$lon.lat
 locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
 
-model.stpca = stpca(X, 3, locations, cov.SE, cov.SE.d, beta0=log(c(1, 0.5)),
-                  maxit.inner=20, maxit.outer=3, trace=0)
+model.stpca = stpca(X, 3, locations, cov.noisy.SE, cov.noisy.SE.d,
+  beta0=log(c(1, 0.5, 1e-4)), maxit.inner=20, maxit.outer=3)
 }

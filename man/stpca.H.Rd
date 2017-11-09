@@ -33,13 +33,13 @@ library(Matrix)
 
 #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
 H.analytic = stpca:::stpca.H(X, W, mu, sigSq, K)
-HsigSq.numeric = Matrix(hessian(function(sigSq_) {
+HsigSq.numeric = Matrix(numDeriv::hessian(function(sigSq_) {
   -stpca.log_posterior(X, K, W, mu, sigSq_)
 }, x=sigSq))
 stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
                     tolerance=1e-8))
 
-Hmu.numeric = Matrix(hessian(function(mu_) {
+Hmu.numeric = Matrix(numDeriv::hessian(function(mu_) {
   -stpca.log_posterior(X, K, W, mu_, sigSq)
 }, x=mu))
 stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
