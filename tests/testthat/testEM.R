@@ -19,25 +19,6 @@ test_that("The expectation function matches analytic solution", {
   }
 })
 
-## Generate the data
-library(functional)
-
-n     = 15
-k     = 4
-dim   = c(11, 11)
-d     = prod(dim)
-beta  = log(c(2, 0.2))
-k_se  = Curry(cov.SE, beta=beta)
-sigSq = 1.8
-
-dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
-locations = dataset$grid
-X = dataset$X
-
-beta0 = cov.SE.beta0(X, locations, k)
-
-stpcaObj = stpca(X, k, locations, cov.SE, cov.SE.d, beta0, trace=0, maxit.inner=0, maxit.outer=0)
-
 context("maximisation in sigma^2")
 
 test_that("sigma^2 maximisation stage increases complete log posterior", {

@@ -1,20 +1,3 @@
-require(numDeriv)
-set.seed(1)
-
-library(functional)
-
-n     = 15
-k     = 4
-dim   = c(11, 11)
-d     = prod(dim)
-beta.real = log(c(2, 0.2))
-k_se  = Curry(cov.SE, beta=beta.real)
-sigSq = 1.8
-
-dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
-locations = dataset$grid
-X = dataset$X/svd(dataset$X)$d[1]
-
 for (covfun in 1:2) {
   if (covfun==1) {
     covar.fun   = cov.independent

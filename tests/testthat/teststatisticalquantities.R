@@ -1,27 +1,5 @@
 context("statistical quantities")
 
-library(fields)
-data(ozone2)
-
-# Missing data: Replace missing values by column means
-X = ozone2$y
-for (col in 1:ncol(X)) {
-  ind = is.na(X[,col])
-  X[ind,col] = mean(X[,col], na.rm=TRUE)
-}
-X = X/sd(X) # Scale for numerical reasons
-
-locations = ozone2$lon.lat
-locations = apply(locations, 2, function(col) (col-min(col))/(max(col)-min(col)))
-
-d = ncol(X)
-n = nrow(X)
-k = 3
-
-beta0 = cov.SE.beta0(X, locations, k)
-
-stpcaObj = stpca(X, k, locations, cov.SE, cov.SE.d, beta0, trace=0, maxit.inner=1, maxit.outer=1)
-
 test_that("The posterior is unaffected by adding a vector to colMeans(X) and mu", {
   lp1 = with(stpcaObj, stpca.log_posterior(X, K, W, mu, sigSq))
   lp2 = with(stpcaObj, stpca.log_posterior(Xc, K, W, rep(0,ncol(Xc)), sigSq))
@@ -92,18 +70,6 @@ test_that("Prior matches simple analytical solution with K=I (sparse)", {
     lpr.analytic = -(d*k*log(2*pi) + sum(W^2))/2
     expect_equal(lpr, lpr.analytic)
   }
-})
-
-test_that("Likelihood matches simple analytical solution with W=0", {
-  # W=0 means log likelihood
-  W = matrix(0, nrow=d, ncol=k)
-  mu = rep(0, d)
-  sigSq = 1
-  ll = stpca.log_likelihood(X, W, mu, sigSq)
-
-  ll.analytic = sum(dnorm(c(X), mean=mu, sd=sigSq, log=TRUE))
-
-  expect_equal(ll, ll.analytic)
 })
 
 test_that("Likelihood matches simple analytical solution with W=0", {

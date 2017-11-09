@@ -1,9 +1,3 @@
-library(Matrix)
-set.seed(1)
-
-locations = expand.grid(seq(-1, 1, length=10), seq(-1, 1, length=10))
-d = nrow(locations)
-
 for (cfi in 1:5) {
   if (cfi==1) {
     cov.fun.str = "cov.SE"

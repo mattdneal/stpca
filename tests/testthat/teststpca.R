@@ -1,28 +1,5 @@
 context("stpca variable types")
 
-## Generate the data
-library(functional)
-
-n     = 15
-k     = 4
-dim   = c(11, 11)
-d     = prod(dim)
-beta  = log(c(2, 0.2))
-k_se  = Curry(cov.SE, beta=beta)
-sigSq = 1.8
-
-dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
-locations = dataset$grid
-X = dataset$X
-
-maxit.inner=3
-maxit.outer=1
-
-beta0 = cov.SE.beta0(X, locations, k)
-
-## Fit the data
-stpcaObj = stpca.init(X, k, locations, cov.SE, cov.SE.d, beta0, trace=0)
-
 test_that("stpca.init returns a valid stpca object", {
   expect_is(stpcaObj$X,     "matrix")
   expect_is(stpcaObj$W,     "matrix")
@@ -54,84 +31,76 @@ test_that("stpca.init returns a valid stpca object", {
   expect_equal(dim(locations)[1], d)
 })
 
-stpcaObj = stpca.iterate(stpcaObj, maxit.inner=maxit.inner,
-                                   maxit.outer=maxit.outer)
-
 test_that("stpca.iterate returns a valid stpca object", {
-  expect_is(stpcaObj$X,     "matrix")
-  expect_is(stpcaObj$W,     "matrix")
-  expect_is(stpcaObj$sigSq, "numeric")
-  expect_is(stpcaObj$mu,    "numeric")
-  expect_is(stpcaObj$V,     "matrix")
-  expect_is(stpcaObj$ll,    "numeric")
-  expect_is(stpcaObj$lp,    "numeric")
-  expect_is(stpcaObj$lps,   "numeric")
-  expect_is(stpcaObj$bic,   "numeric")
-  expect_true(length(stpcaObj$beta0)==0 | is(stpcaObj$beta0, "numeric"))
-  expect_is(stpcaObj$D,     "Matrix")
-  expect_is(stpcaObj$K,     "Matrix")
-  expect_is(stpcaObj$covar.fn,   "function")
-  expect_is(stpcaObj$covar.fn.d, "function")
-  expect_is(stpcaObj$locations,  "matrix")
+  expect_is(stpcaObj.it$X,     "matrix")
+  expect_is(stpcaObj.it$W,     "matrix")
+  expect_is(stpcaObj.it$sigSq, "numeric")
+  expect_is(stpcaObj.it$mu,    "numeric")
+  expect_is(stpcaObj.it$V,     "matrix")
+  expect_is(stpcaObj.it$ll,    "numeric")
+  expect_is(stpcaObj.it$lp,    "numeric")
+  expect_is(stpcaObj.it$lps,   "numeric")
+  expect_is(stpcaObj.it$bic,   "numeric")
+  expect_true(length(stpcaObj.it$beta0)==0 | is(stpcaObj.it$beta0, "numeric"))
+  expect_is(stpcaObj.it$D,     "Matrix")
+  expect_is(stpcaObj.it$K,     "Matrix")
+  expect_is(stpcaObj.it$covar.fn,   "function")
+  expect_is(stpcaObj.it$covar.fn.d, "function")
+  expect_is(stpcaObj.it$locations,  "matrix")
 
-  expect_equal(dim(stpcaObj$X), c(n, d))
-  expect_equal(dim(stpcaObj$W), c(d, k))
-  expect_length(stpcaObj$sigSq, 1)
-  expect_length(stpcaObj$mu, d)
-  expect_equal(dim(stpcaObj$V), c(n, k))
-  expect_length(stpcaObj$ll, 1)
-  expect_length(stpcaObj$lp, 1)
-  expect_length(stpcaObj$lps, 1 + maxit.inner*(maxit.outer + 1))
-  expect_length(stpcaObj$bic, 1)
-  expect_equal(dim(stpcaObj$D), c(d, d))
-  expect_equal(dim(stpcaObj$K), c(d, d))
+  expect_equal(dim(stpcaObj.it$X), c(n, d))
+  expect_equal(dim(stpcaObj.it$W), c(d, k))
+  expect_length(stpcaObj.it$sigSq, 1)
+  expect_length(stpcaObj.it$mu, d)
+  expect_equal(dim(stpcaObj.it$V), c(n, k))
+  expect_length(stpcaObj.it$ll, 1)
+  expect_length(stpcaObj.it$lp, 1)
+  expect_length(stpcaObj.it$lps, 1 + maxit.inner*(maxit.outer + 1))
+  expect_length(stpcaObj.it$bic, 1)
+  expect_equal(dim(stpcaObj.it$D), c(d, d))
+  expect_equal(dim(stpcaObj.it$K), c(d, d))
   expect_equal(dim(locations)[1], d)
 })
 
 context("stpca.iterate.beta")
 
-stpcaObjNew = stpca.iterate.beta(stpcaObj)
-
 test_that("stpca.iterate.beta increases log evidence", {
-  expect_gt(stpcaObjNew$log_evidence, stpcaObj$log_evidence)
+  expect_gt(stpcaObj.it.b$log_evidence, stpcaObj.it$log_evidence)
 })
 
 test_that("stpca.iterate.beta modifies beta, H, K", {
-  expect_that(identical(stpcaObjNew$H,    stpcaObj$H),    is_false())
-  expect_that(identical(stpcaObjNew$K,    stpcaObj$K),    is_false())
-  expect_that(identical(stpcaObjNew$beta, stpcaObj$beta), is_false())
+  expect_that(identical(stpcaObj.it.b$H,    stpcaObj.it$H),    is_false())
+  expect_that(identical(stpcaObj.it.b$K,    stpcaObj.it$K),    is_false())
+  expect_that(identical(stpcaObj.it.b$beta, stpcaObj.it$beta), is_false())
 })
 
 test_that("stpca.iterate.beta does not change theta", {
-  expect_identical(stpcaObjNew$W,     stpcaObj$W)
-  expect_identical(stpcaObjNew$sigSq, stpcaObj$sigSq)
-  expect_identical(stpcaObjNew$V,     stpcaObj$V)
-  expect_identical(stpcaObjNew$ll,    stpcaObj$ll)
-  expect_identical(stpcaObjNew$lp,    stpcaObj$lp)
-  expect_identical(stpcaObjNew$lps,   stpcaObj$lps)
+  expect_identical(stpcaObj.it.b$W,     stpcaObj.it$W)
+  expect_identical(stpcaObj.it.b$sigSq, stpcaObj.it$sigSq)
+  expect_identical(stpcaObj.it.b$V,     stpcaObj.it$V)
+  expect_identical(stpcaObj.it.b$ll,    stpcaObj.it$ll)
+  expect_identical(stpcaObj.it.b$lp,    stpcaObj.it$lp)
+  expect_identical(stpcaObj.it.b$lps,   stpcaObj.it$lps)
 })
 
 context("stpca.iterate.theta")
 
-stpcaObj = stpcaObjNew
-stpcaObjNew = stpca.iterate.theta(stpcaObj, maxit.inner=50)
-
 test_that("stpca.iterate.theta increases log posterior", {
-  expect_gt(stpcaObjNew$lp, stpcaObj$lp)
+  expect_gt(stpcaObj.it.t$lp, stpcaObj.it.b$lp)
 })
 
 test_that("stpca.iterate.theta only changes relevant variables", {
-  expect_identical(stpcaObjNew$H,            stpcaObj$H)
-  expect_identical(stpcaObjNew$K,            stpcaObj$K)
-  expect_identical(stpcaObjNew$beta,         stpcaObj$beta)
-  expect_identical(stpcaObjNew$log_evidence, stpcaObj$log_evidence)
+  expect_identical(stpcaObj.it.t$H,            stpcaObj.it.b$H)
+  expect_identical(stpcaObj.it.t$K,            stpcaObj.it.b$K)
+  expect_identical(stpcaObj.it.t$beta,         stpcaObj.it.b$beta)
+  expect_identical(stpcaObj.it.t$log_evidence, stpcaObj.it.b$log_evidence)
 
-  expect_that(identical(stpcaObjNew$W,     stpcaObj$W),     is_false())
-  expect_that(identical(stpcaObjNew$sigSq, stpcaObj$sigSq), is_false())
-  expect_that(identical(stpcaObjNew$V,     stpcaObj$V),     is_false())
-  expect_that(identical(stpcaObjNew$ll,    stpcaObj$ll),    is_false())
-  expect_that(identical(stpcaObjNew$lp,    stpcaObj$lp),    is_false())
-  expect_that(identical(stpcaObjNew$lps,   stpcaObj$lps),   is_false())
+  expect_that(identical(stpcaObj.it.t$W,     stpcaObj.it.b$W),     is_false())
+  expect_that(identical(stpcaObj.it.t$sigSq, stpcaObj.it.b$sigSq), is_false())
+  expect_that(identical(stpcaObj.it.t$V,     stpcaObj.it.b$V),     is_false())
+  expect_that(identical(stpcaObj.it.t$ll,    stpcaObj.it.b$ll),    is_false())
+  expect_that(identical(stpcaObj.it.t$lp,    stpcaObj.it.b$lp),    is_false())
+  expect_that(identical(stpcaObj.it.t$lps,   stpcaObj.it.b$lps),   is_false())
 })
 
 # it doesn't!! It finds a saddle point!
