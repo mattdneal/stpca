@@ -116,7 +116,7 @@ stpca.iterate.beta <- function(stpcaObj) {
       stpca.log_evidence_d(Xc, K, W, rep(0, d), sigSq, beta_, dK)
     }
 
-    optObj = maxLik(logLik, grad, start=beta)
+    optObj = maxLik(logLik, grad, start=beta, method="BFGS")
 
     beta = optObj$estimate
     K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
