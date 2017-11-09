@@ -57,9 +57,7 @@ stpca.log_prior <- function(K, W) {
 
   # This special case for sparse matrices is more numerically stable
   if (is(K, "sparseMatrix")) {
-    if (all(diag(K)==0) | all(diag(K)==Inf)) {
-      return(-Inf)
-    }
+    if (any(!is.finite(diag(K)))) { return(-Inf) }
 
     Kc = Cholesky(K, LDL=TRUE, pivot=TRUE)
 
@@ -76,7 +74,7 @@ stpca.log_prior <- function(K, W) {
     K = Matrix(K)
     # This is more stable than a base matrix solution, but not for sparse
     # Matrices (dealt with above)
-    if (all(diag(K)==0) | all(diag(K)==Inf)) {return(-Inf)}
+    if (any(!is.finite(diag(K)))) { return(-Inf) }
     trWtKinvW = sum(diag(Matrix::crossprod(W, solve(K, W))))
     # TODO: Calculate determinant from decomposition
     logDetK = as.numeric(determinant(K, logarithm=TRUE)$modulus)
