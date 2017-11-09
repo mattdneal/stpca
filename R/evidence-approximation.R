@@ -197,12 +197,6 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
   Cinv = forceSymmetric(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
-  Kinv = tryCatch({
-    solve(K)
-  }, error = function(e) {
-    stop(paste("Cannot invert K"))
-  })
-
   HW = list()
   for (k_ in 1:k) {
     wi = W[,k_,drop=F]
