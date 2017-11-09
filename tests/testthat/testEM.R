@@ -114,7 +114,7 @@ test_that("stpca.iterate.theta maximises the log posterior", {
   for (i in 1:800) {
     Wpert  = stpcaObj$W + 1e-5*matrix(rnorm(d*k), nrow=d, ncol=k)
     sspert = stpcaObj$sigSq + 1e-5*rnorm(1)
-    lpPert = stpca.log_posterior(Xc, K, Wpert, mu, sspert)
+    lpPert = with(stpcaObj, stpca.log_posterior(Xc, K, Wpert, mu, sspert))
     expect_gt(lp, lpPert)
   }
 })
