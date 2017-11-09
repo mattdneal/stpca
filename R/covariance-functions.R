@@ -1,3 +1,47 @@
+#' Noisy RQ covariance function
+#'
+#' The sum of the Rational Quadratic and the independent covariance functions.
+#' Interpreted as the smooth RQ covariance function plus iid noise. This is
+#' implemented as the sum of two covariance functions, with the first three
+#' elements of beta being sent to the RQ covariance function, and the last
+#' element being sent to the independent covariance function.
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta Hyperparameters; beta[1] is the log signal variance, beta[2] is
+#'          the log length scale, beta[3] is log alpha, and beta[4] is the
+#'          variance of the noise.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.RQ <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==4)
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2)
+  }
+  K = cov.RQ(X, X2, beta=beta[1:3]) + cov.independent(X, X2, beta=beta[4])
+  return(K)
+}
+
+#' Partial derivatives of the noisy RQ covariance function
+#'
+#' @param X Matrix of data
+#' @param X2 (optional) second matrix of data; if omitted, X is used.
+#' @param beta Hyperparameters; beta[1] is the log signal variance, beta[2] is
+#'          the log length scale, beta[3] is log alpha, and beta[4] is the
+#'          variance of the noise.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.RQ.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(length(beta)==4)
+  if (all(is.na(D))) {
+    D = distanceMatrix(X, X2)
+  }
+  return(append(cov.RQ.d(X, X2, beta[1:3], D),
+                cov.independent.d(X, X2, beta[4], D)))
+}
+
 #' Noisy SE covariance function
 #'
 #' The sum of the Squared Exponential and the independent covariance functions.
