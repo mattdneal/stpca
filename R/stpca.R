@@ -11,6 +11,7 @@
 #' @param max.dist Maximum distance between features to consider
 #' @param maxit.inner number of inner iterations
 #' @param maxit.outer number of outer iterations
+#' @param constraints constraints on beta, of the form used in maxLik
 #' @return An \code{stpca} object.
 #' @export
 #' @include util.R
@@ -38,9 +39,9 @@
 #'   beta0=log(c(1, 0.5, 1e-4)), maxit.inner=20, maxit.outer=3)
 stpca <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   trace=0, report.iter=10, max.dist=Inf,
-                  maxit.inner=20, maxit.outer=5) {
+                  maxit.inner=20, maxit.outer=5, constraints=NULL) {
   stpcaObj = stpca.init(X, k, locations, covar.fn,
-                        covar.fn.d, beta0, trace, max.dist)
+                        covar.fn.d, beta0, trace, max.dist, constraints)
   stpcaObj = stpca.iterate(stpcaObj, trace, report.iter,
                            maxit.inner, maxit.outer)
   return(stpcaObj)

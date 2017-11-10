@@ -6,7 +6,7 @@
 \usage{
 stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
   trace = 0, report.iter = 10, max.dist = Inf, maxit.inner = 20,
-  maxit.outer = 5)
+  maxit.outer = 5, constraints = NULL)
 }
 \arguments{
 \item{X}{Data}
@@ -30,6 +30,8 @@ stpca(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
 \item{maxit.inner}{number of inner iterations}
 
 \item{maxit.outer}{number of outer iterations}
+
+\item{constraints}{constraints on beta, of the form used in maxLik}
 }
 \value{
 An \code{stpca} object.

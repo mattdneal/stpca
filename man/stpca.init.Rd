@@ -5,7 +5,7 @@
 \title{Initialises an stpca object.}
 \usage{
 stpca.init(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
-  trace = 0, max.dist = Inf)
+  trace = 0, max.dist = Inf, constraints = NULL)
 }
 \arguments{
 \item{X}{Data}
@@ -23,6 +23,8 @@ stpca.init(X, k, locations, covar.fn, covar.fn.d = NULL, beta0 = c(),
 \item{trace}{amount of reporting. 0=none, 1=low, 2=high}
 
 \item{max.dist}{Maximum distance between features to consider}
+
+\item{constraints}{constraints on beta, of the form used in maxLik}
 }
 \value{
 An \code{stpca} object.

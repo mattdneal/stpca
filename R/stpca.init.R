@@ -8,13 +8,14 @@
 #' @param beta0 initial hyperparameters
 #' @param trace amount of reporting. 0=none, 1=low, 2=high
 #' @param max.dist Maximum distance between features to consider
+#' @param constraints constraints on beta, of the form used in maxLik
 #' @return An \code{stpca} object.
 #' @export
 #' @include util.R
 #' @include statistical-quantities.R
 #' @import Matrix
 stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
-                       trace=0, max.dist=Inf) {
+                       trace=0, max.dist=Inf, constraints=NULL) {
 
   stopifnot(all(is.finite(X)))
 
@@ -79,7 +80,8 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   covar.fn = covar.fn,
                   locations = locations,
                   covar.fn.d = covar.fn.d,
-                  log_evidence = NA)
+                  log_evidence = NA,
+                  constraints = constraints)
   class(stpcaObj) = "stpca"
   return(stpcaObj)
 }
