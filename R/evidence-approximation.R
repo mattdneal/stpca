@@ -62,12 +62,10 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
 #' @return Partial derivatives of approximate log evidence
 #' @export
 stpca.log_evidence_d <- function(X, K, W, mu, sigSq, beta, dK) {
-  HW = tryCatch({
-    stpca.H.W(X, W, mu, sigSq, K)
-  }, error = function(err) {
-    stop(paste("Error constructing H using beta=",
-               paste(round(beta, digits=4), collapse=",")))
-  })
+  success=FALSE
+  try({HW = stpca.H.W(X, W, mu, sigSq, K); success=TRUE})
+
+  if(!success) {return(lapply(seq_along(beta), function(b) 0))}
 
   logPrior.d = stpca.log_prior_d(W, beta, K, dK)
   logDetH.d  = stpca.log_det_H_d(K, dK, HW)
