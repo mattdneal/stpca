@@ -33,15 +33,19 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
   # Centered X
   Xc = sweep(X, 2, mu)
 
-  H = stpca.H(X, W, mu, sigSq, K)
-  logDetH = sum(vapply(H, function(Hblock) {
-     as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
-  }, numeric(1)))
+  # If the inversion cannot be done, logZ defaults to -Inf
+  logZ = -Inf
+  try({
+    H = stpca.H(X, W, mu, sigSq, K)
+    logDetH = sum(vapply(H, function(Hblock) {
+       as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
+    }, numeric(1)))
 
-  # Laplace-approximated log evidence
-  logZ = (stpca.log_posterior(X, K, W, mu, sigSq) +
-          (0.5*(d*k+d+1))*log(2*pi) -
-          0.5*logDetH)
+    # Laplace-approximated log evidence
+    logZ = (stpca.log_posterior(X, K, W, mu, sigSq) +
+            (0.5*(d*k+d+1))*log(2*pi) -
+            0.5*logDetH)
+  }, silent=TRUE)
   return(logZ)
 }
 
