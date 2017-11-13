@@ -37,6 +37,7 @@ for (cfi in 1:5) {
       expect_is(K, "Matrix")
       expect_that(all(is.finite(K)), is_true())
       expect_that(isSymmetric(K), is_true())
+      expect_is(K, "symmetricMatrix")
     })
 
     test_that(paste(cov.fun.str,"gradient matches numerical gradient"), {
