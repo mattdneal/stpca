@@ -202,35 +202,21 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   HW = list()
   for (k_ in 1:k) {
     wi = W[,k_,drop=F]
-    HW[[k_]] = Matrix(forceSymmetric(solve(K,
-      Diagonal(d) +
-      #Cinv*as.numeric(t(wi)%*%Cinv%*%t(Xc)%*%Xc%*%Cinv%*%wi -
-      #                n*t(wi)%*%Cinv%*%wi + n) +
+    rhs = (Diagonal(d) +
       K%*%Cinv*as.numeric(tcrossprod(t(wi)%*%Cinv%*%t(Xc))
                       - n*t(wi)%*%Cinv%*%wi + n) +
-      #Cinv%*%(
-      #  t(Xc)%*%Xc%*%Cinv%*%wi%*%t(wi) +
-      #  wi%*%t(wi)%*%Cinv%*%t(Xc)%*%Xc +
-      #  as.numeric(t(wi)%*%Cinv%*%wi - 1)*t(Xc)%*%Xc -
-      #  n*wi%*%t(wi)
-      #)%*%Cinv, forceCheck=TRUE)
-      #Cinv%*%(
-      #  crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
-      #  tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
-      #  as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
-      #  n*tcrossprod(wi)
-      #)%*%Cinv,
       K%*%tcrossprod(Cinv, crossprod(Cinv, (
         crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
         tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
         as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
-        n*tcrossprod(wi)
-      )))
-    )), forceCheck=TRUE)
-
-    # Symmetrize: the matrix is *not* symmetric because of numerical issues
-    # & order of operations!
-    HW[[k_]] = 0.5*(HW[[k_]] + t(HW[[k_]]))
+        n*tcrossprod(wi)))))
+    invSuccess=FALSE
+    try({
+      Hwk = solve(K, rhs)
+      invSuccess=TRUE
+    }, silent=TRUE)
+    if (!invSuccess) { stop("Could not invert K") }
+    HW[[k_]] = Matrix(forceSymmetric(Hwk))
   }
   return(HW)
 }
