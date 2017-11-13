@@ -28,3 +28,11 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
     expect_equal(Hwi.analytic, Hwi.numeric)
   }
 })
+
+test_that("Building H triggers an informative error if K cannot be inverted", {
+  expect_error({
+    with(stpcaObj, {
+      K_ = cov.SE(locations, beta=log(c(1, 10000)))
+      stpca.H(X, W, mu, sigSq, K_)
+    })}, "Could not invert K")
+})
