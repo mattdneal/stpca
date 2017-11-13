@@ -10,7 +10,7 @@ k     = 4
 dim   = c(5, 5)
 d     = prod(dim)
 beta  = log(c(2, 0.2))
-k_se  = Curry(cov.SE, beta=beta)
+k_se  = functional::Curry(cov.SE, beta=beta)
 sigSq = 1.8
 
 dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
