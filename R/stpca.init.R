@@ -81,6 +81,7 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   locations = locations,
                   covar.fn.d = covar.fn.d,
                   log_evidence = NA,
+                  log_evidences = c(),
                   constraints = constraints)
   class(stpcaObj) = "stpca"
   return(stpcaObj)

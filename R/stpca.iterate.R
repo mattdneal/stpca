@@ -122,11 +122,13 @@ stpca.iterate.beta <- function(stpcaObj) {
     K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
     H    = stpca.H(Xc, W, rep(0,ncol(Xc)), sigSq, K)
     log_evidence = optObj$maximum
+    log_evidences = c(log_evidences, log_evidence)
   })
 
   stpcaObj$H    = vars$H
   stpcaObj$K    = vars$K
   stpcaObj$beta = vars$beta
-  stpcaObj$log_evidence = vars$log_evidence
+  stpcaObj$log_evidence  = vars$log_evidence
+  stpcaObj$log_evidences = vars$log_evidences
   return(stpcaObj)
 }
