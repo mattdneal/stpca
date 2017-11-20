@@ -72,6 +72,29 @@ test_that("Prior matches simple analytical solution with K=I (sparse)", {
   }
 })
 
+test_that("Log prior matches a multivariate normal", {
+  require(mvtnorm)
+  #stpcaObj
+  lp1 = stpca.log_prior(stpcaObj$K, stpcaObj$W)
+  lp2 = sum(dmvnorm(t(stpcaObj$W), sigma=as.matrix(stpcaObj$K), log=TRUE))
+  expect_equal(lp1, lp2)
+
+  #stpcaObj.it
+  lp1 = stpca.log_prior(stpcaObj.it$K, stpcaObj.it$W)
+  lp2 = sum(dmvnorm(t(stpcaObj.it$W), sigma=as.matrix(stpcaObj.it$K), log=TRUE))
+  expect_equal(lp1, lp2)
+
+  #stpcaObj.it.b
+  lp1 = stpca.log_prior(stpcaObj.it.b$K, stpcaObj.it.b$W)
+  lp2 = sum(dmvnorm(t(stpcaObj.it.b$W), sigma=as.matrix(stpcaObj.it.b$K), log=TRUE))
+  expect_equal(lp1, lp2)
+
+  #stpcaObj.it.t
+  lp1 = stpca.log_prior(stpcaObj.it.t$K, stpcaObj.it.t$W)
+  lp2 = sum(dmvnorm(t(stpcaObj.it.t$W), sigma=as.matrix(stpcaObj.it.t$K), log=TRUE))
+  expect_equal(lp1, lp2)
+})
+
 test_that("Likelihood matches simple analytical solution with W=0", {
   # W=0 means log likelihood
   W = matrix(0, nrow=d, ncol=k)
