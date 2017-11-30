@@ -36,3 +36,28 @@ test_that("Building H triggers an informative error if K cannot be inverted", {
       stpca.H(X, W, mu, sigSq, K_)
     })}, "Could not invert K")
 })
+
+test_that("diag of H matches numerical reconstruction on larget dataset", {
+  # This is also checking non-optimised params.
+  n     = 15
+  k     = 4
+  dim   = c(21, 21)
+  d     = prod(dim)
+  beta  = log(c(2, 0.2))
+  k_se  = Curry(cov.SE, beta=beta)
+  sigSq = 1.8
+
+  synth = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
+
+  Hw1diag.num = vapply(1:d, function(i) {
+    as.numeric(hessian(function(wi) {
+      W_ = synth$W
+      W_[i,1] = wi
+      -stpca.log_posterior(synth$X, synth$K, W_, 0, sigSq)
+    }, synth$W[i,1]))
+  }, numeric(1))
+
+  Hw1diag = diag(stpca.H.W(synth$X, synth$W, 0, sigSq, synth$K)[[1]])
+
+  expect_equal(Hw1diag, Hw1diag.num)
+})
