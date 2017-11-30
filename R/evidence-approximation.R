@@ -30,9 +30,6 @@ stpca.log_evidence <- function(X, K, W, mu, sigSq) {
   d = ncol(X)
   k = ncol(W)
 
-  # Centered X
-  Xc = sweep(X, 2, mu)
-
   # If the inversion cannot be done, logZ defaults to -Inf
   logZ = -Inf
   try({
