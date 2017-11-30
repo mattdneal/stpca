@@ -97,7 +97,7 @@ stpca.log_prior_d <- function(W, beta, K, dK) {
 
     deriv[i] = -0.5*(term1 + term2)
   }
-  names(deriv) = names(deriv)
+  names(deriv) = names(beta)
   return(deriv)
 }
 
