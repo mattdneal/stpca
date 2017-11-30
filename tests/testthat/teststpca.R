@@ -83,6 +83,15 @@ test_that("stpca.iterate.beta does not change theta", {
   expect_identical(stpcaObj.it.b$lps,   stpcaObj.it$lps)
 })
 
+test_that("beta has sensible 95% confidence intervals", {
+  ci95 = attr(stpcaObj.it.b$beta, "ci95")
+  expect_is(ci95, "matrix")
+  for (i in seq_along(stpcaObj$beta)) {
+    expect_lt(stpcaObj.it.b$beta[i], ci95["upper",i])
+    expect_gt(stpcaObj.it.b$beta[i], ci95["lower",i])
+  }
+})
+
 context("stpca.iterate.theta")
 
 test_that("stpca.iterate.theta increases log posterior", {
