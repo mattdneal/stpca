@@ -20,9 +20,9 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
   for (i in 1:k) {
     Hwi.analytic = H[[paste("w", i, sep='')]]
     Hwi.numeric = Matrix(numDeriv::hessian(function(wi) {
-      W = stpcaObj$W
-      W[,i] = wi
-      -stpca.log_posterior(X, stpcaObj$K, W, stpcaObj$mu, stpcaObj$sigSq)
+      W_ = stpcaObj$W
+      W_[,i] = wi
+      -stpca.log_posterior(X, stpcaObj$K, W_, stpcaObj$mu, stpcaObj$sigSq)
     }, x=stpcaObj$W[,i]))
 
     expect_equal(Hwi.analytic, Hwi.numeric)
