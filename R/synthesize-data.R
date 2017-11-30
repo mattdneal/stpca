@@ -7,7 +7,7 @@
 #' @import MASS
 synthesize_data <- function(n, k, K, noisesd=0) {
   d   = ncol(K)
-  diag(K) = diag(K) + 1e-10
+  stopifnot(k<=d)
   R_K = chol(K)
   W   = t(R_K) %*% matrix(rnorm(d*k), nrow=d, ncol=k)
   V   = mvrnorm(n=n, mu=rep(0, k), Sigma=diag(k))
