@@ -47,7 +47,8 @@ test_that("diag of H matches numerical reconstruction on larget dataset", {
   k_se  = Curry(cov.SE, beta=beta)
   sigSq = 1.8
 
-  synth = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
+  synth = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq),
+                               noisesd=1e-6)
 
   Hw1diag.num = vapply(1:d, function(i) {
     as.numeric(hessian(function(wi) {
