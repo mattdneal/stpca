@@ -105,6 +105,7 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
 #' @import maxLik
 stpca.iterate.beta <- function(stpcaObj) {
   vars = within(unclass(stpcaObj), {
+    # Set up objective and gradient functions
     logLik = function(beta_) {
       K = covar.fn(locations, beta=beta_)
       stpca.log_evidence(Xc, K, W, rep(0, d), sigSq)
@@ -116,9 +117,18 @@ stpca.iterate.beta <- function(stpcaObj) {
       stpca.log_evidence_d(Xc, K, W, rep(0, d), sigSq, beta_, dK)
     }
 
+    # Do optimisation & get maxlik beta
     optObj = maxBFGS(logLik, grad, start=beta, constraints=constraints)
+    beta   = optObj$estimate
 
-    beta = optObj$estimate
+    # Add 95% confidence intervals for beta
+    ci95 = matrix(NA, nrow=2, ncol=length(beta),
+                  dimnames=list(c("upper", "lower"), names(beta)))
+    ci95["upper",] = beta + sqrt(-diag(optObj$hessian))
+    ci95["lower",] = beta - sqrt(-diag(optObj$hessian))
+    attr(beta, "ci95") = ci95
+
+    # Recompute values depending on beta
     K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
     H    = stpca.H(Xc, W, rep(0,ncol(Xc)), sigSq, K)
     log_evidence = optObj$maximum
