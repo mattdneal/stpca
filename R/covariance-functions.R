@@ -330,6 +330,97 @@ cov.independent.d <- function(X, X2, beta, D=NA, ...) {
     "symmetricMatrix")))
 }
 
+#' Noisy MR
+#'
+#' @param X Matrix of data
+#' @param beta Hyperparameters; beta[1] is the log signal variance,
+#'   beta[-1] are the ncol(X) length scales.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.MR <- function(X, beta) {
+  stopifnot(length(beta)==ncol(X)+1)
+  sigVar = exp(beta[1])  # Signal variance: k(0)
+  supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
+
+  D = distanceMatrix(X%*%diag(1/supLen), max.dist=1)
+
+  r = D@x
+  D@x = sigVar*((2+cos(2*pi*r))*(1-r)/3 + sin(2*pi*r)/(2*pi))
+  return(D)
+}
+
+#' Partial derivatives of the MR
+#'
+#' @param X Matrix of data
+#' @param beta Hyperparameters; beta[1] is the log signal variance,
+#'   beta[-1] are the ncol(X) length scales.
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.MR.d <- function(X, beta) {
+  stopifnot(length(beta)==ncol(X)+1)
+  sigVar = exp(beta[1])  # Signal variance: k(0)
+  supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
+
+  D = distanceMatrix(X%*%diag(1/supLen), max.dist=1)
+
+  r = D@x
+
+  dK1x  = ((2+cos(2*pi*r))*(1-r)/3 + sin(2*pi*r)/(2*pi))*sigVar
+
+  dK1 = D; dK1@x = dK1x
+  derivs = list(logSigVar=dK1)
+
+  ij = getij(D)
+  for (dimension in seq_len(ncol(X))) {
+    X2 = X[,dimension]/supLen[dimension]
+    r2 = (X2[ij$i] - X2[ij$j])^2
+
+    dK2x = ((pi*(1-r)*cos(pi*r) + sin(pi*r)) *
+            sin(pi*r)*r2/(r*supLen[dimension])) *
+           4*sigVar*supLen[dimension]/3
+    dK2   = D
+    dK2@x = dK2x
+    diag(dK2) = 0
+    derivs[[paste("logl", dimension, sep='')]] = dK2
+  }
+
+  return(derivs)
+}
+
+#' Noisy MR covariance function
+#'
+#' @param X Matrix of data
+#' @param beta Hyperparameters; beta[1] is the log signal variance,
+#'   beta[2:(ncol(X)+1)] are the ncol(X) length scales. beta[ncol(X)+2]
+#'   is the noise variance
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.MR <- function(X, beta) {
+  stopifnot(length(beta)==ncol(X)+1)
+  K = cov.MR(X, beta=beta[1:ncol(X)]) +
+      cov.independent(X, beta=beta[-(1:ncol(X))])
+  return(K)
+}
+
+#' Partial derivatives of the noisy MR covariance function
+#'
+#' @param X Matrix of data
+#' @param beta Hyperparameters; beta[1] is the log signal variance,
+#'   beta[2:(ncol(X)+1)] are the ncol(X) length scales. beta[ncol(X)+2]
+#'   is the noise variance
+#' @export
+#' @include util.R
+#' @import Matrix
+cov.noisy.MR.d <- function(X, beta) {
+  stopifnot(length(beta)==ncol(X)+1)
+  return(append(cov.MR.d(X, beta=beta[1:ncol(X)]),
+                cov.independent.d(X, beta=beta[-(1:ncol(X))])))
+}
+
+
 cov.triangular <- function(X, beta, ...) {
   D   = distanceMatrix(X, max.dist=exp(beta[2]))
   D@x = exp(beta[1])*(1 - D@x/exp(beta[2]))
