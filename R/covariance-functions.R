@@ -420,6 +420,16 @@ cov.noisy.MR.d <- function(X, beta) {
                 cov.independent.d(X, beta=beta[-(1:ncol(X))])))
 }
 
+#' Computationally cheap estimate for beta0 for cov.MR
+#' @param X The dataset being analysed with stpca
+#' @param locations Matrix containing the location of each feature in rows
+#' @param k Latent dimensionality used in stpca
+#' @export
+cov.MR.beta0 <- function(X, locations, k) {
+  beta0 = cov.SE.beta0(X, locations, k)
+  beta0[2] = beta0[2] + log(2.5)
+  return(beta0)
+}
 
 cov.triangular <- function(X, beta, ...) {
   D   = distanceMatrix(X, max.dist=exp(beta[2]))
