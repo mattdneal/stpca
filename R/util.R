@@ -76,3 +76,26 @@ sylSolve <- function(A, B, C) {
   W = Wtil %*% t(Beig$vectors)
   return(W)
 }
+
+getij <- function(A) {
+  stopifnot(is(A, "Matrix"))
+
+  if (is(A, "denseMatrix")) {
+    grid = expand.grid(1:nrow(A), 1:ncol(A))
+    return(list(i=grid$Var1, j=grid$Var2))
+  }
+
+  if (.hasSlot(A, "i")) {
+    i = A@i+1
+  } else {
+    i = findInterval(seq(A@x)-1,A@p[-1])+1
+  }
+
+  if (.hasSlot(A, "j")) {
+    j = A@j+1
+  } else {
+    j = findInterval(seq(A@x)-1,A@p[-1])+1
+  }
+
+  return(list(i=i, j=j))
+}
