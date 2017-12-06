@@ -428,6 +428,9 @@ cov.noisy.MR.d <- function(X, beta, ...) {
 cov.MR.beta0 <- function(X, locations, k) {
   beta0 = cov.SE.beta0(X, locations, k)
   beta0[2] = beta0[2] + log(2.5)
+  beta0[2:(ncol(locations)+1)] = beta0[2]
+  names(beta0)[2:(ncol(locations)+1)] = paste("logSupport",
+    1:ncol(locations), sep='')
   return(beta0)
 }
 
