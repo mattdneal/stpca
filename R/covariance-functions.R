@@ -338,7 +338,7 @@ cov.independent.d <- function(X, X2, beta, D=NA, ...) {
 #' @export
 #' @include util.R
 #' @import Matrix
-cov.MR <- function(X, beta) {
+cov.MR <- function(X, beta, ...) {
   stopifnot(length(beta)==ncol(X)+1)
   sigVar = exp(beta[1])  # Signal variance: k(0)
   supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
@@ -358,7 +358,7 @@ cov.MR <- function(X, beta) {
 #' @export
 #' @include util.R
 #' @import Matrix
-cov.MR.d <- function(X, beta) {
+cov.MR.d <- function(X, beta, ...) {
   stopifnot(length(beta)==ncol(X)+1)
   sigVar = exp(beta[1])  # Signal variance: k(0)
   supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
@@ -398,10 +398,10 @@ cov.MR.d <- function(X, beta) {
 #' @export
 #' @include util.R
 #' @import Matrix
-cov.noisy.MR <- function(X, beta) {
-  stopifnot(length(beta)==ncol(X)+1)
-  K = cov.MR(X, beta=beta[1:ncol(X)]) +
-      cov.independent(X, beta=beta[-(1:ncol(X))])
+cov.noisy.MR <- function(X, beta, ...) {
+  stopifnot(length(beta)==ncol(X)+2)
+  K = cov.MR(X, beta=beta[1:(ncol(X)+1)]) +
+      cov.independent(X, beta=beta[-(1:(ncol(X)+1))])
   return(K)
 }
 
@@ -414,10 +414,10 @@ cov.noisy.MR <- function(X, beta) {
 #' @export
 #' @include util.R
 #' @import Matrix
-cov.noisy.MR.d <- function(X, beta) {
-  stopifnot(length(beta)==ncol(X)+1)
-  return(append(cov.MR.d(X, beta=beta[1:ncol(X)]),
-                cov.independent.d(X, beta=beta[-(1:ncol(X))])))
+cov.noisy.MR.d <- function(X, beta, ...) {
+  stopifnot(length(beta)==ncol(X)+2)
+  return(append(cov.MR.d(X, beta=beta[1:(ncol(X)+1)]),
+                cov.independent.d(X, beta=beta[-(1:(ncol(X)+1))])))
 }
 
 #' Computationally cheap estimate for beta0 for cov.MR
