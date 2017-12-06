@@ -55,32 +55,54 @@ test_that("stpca.iterate returns a valid stpca object", {
   expect_equal(dim(stpcaObj.it$V), c(n, k))
   expect_length(stpcaObj.it$ll, 1)
   expect_length(stpcaObj.it$lp, 1)
-  expect_length(stpcaObj.it$lps, 1 + maxit.inner*(maxit.outer + 1))
+  expect_length(stpcaObj.it$lps, 1 + maxit.inner*maxit.outer)
   expect_length(stpcaObj.it$bic, 1)
   expect_equal(dim(stpcaObj.it$D), c(d, d))
   expect_equal(dim(stpcaObj.it$K), c(d, d))
   expect_equal(dim(locations)[1], d)
 })
 
+context("stpca.iterate.theta")
+
+test_that("stpca.iterate.theta increases log posterior", {
+  expect_gt(stpcaObj.it.t$lp, stpcaObj.it$lp)
+})
+
+test_that("stpca.iterate.theta only changes relevant variables", {
+  expect_identical(stpcaObj.it.t$H,            stpcaObj.it$H)
+  expect_identical(stpcaObj.it.t$K,            stpcaObj.it$K)
+  expect_identical(stpcaObj.it.t$beta,         stpcaObj.it$beta)
+  expect_identical(stpcaObj.it.t$log_evidence, stpcaObj.it$log_evidence)
+
+  expect_that(identical(stpcaObj.it.t$W,     stpcaObj.it$W),     is_false())
+  expect_that(identical(stpcaObj.it.t$sigSq, stpcaObj.it$sigSq), is_false())
+  expect_that(identical(stpcaObj.it.t$V,     stpcaObj.it$V),     is_false())
+  expect_that(identical(stpcaObj.it.t$ll,    stpcaObj.it$ll),    is_false())
+  expect_that(identical(stpcaObj.it.t$lp,    stpcaObj.it$lp),    is_false())
+  expect_that(identical(stpcaObj.it.t$lps,   stpcaObj.it$lps),   is_false())
+})
+
 context("stpca.iterate.beta")
 
 test_that("stpca.iterate.beta increases log evidence", {
-  expect_gt(stpcaObj.it.b$log_evidence, stpcaObj.it$log_evidence)
+  le.old = stpca.log_evidence(stpcaObj.it.t)
+  le.new = stpca.log_evidence(stpcaObj.it.b)
+  expect_gt(le.new, le.old)
 })
 
 test_that("stpca.iterate.beta modifies beta, H, K", {
-  expect_that(identical(stpcaObj.it.b$H,    stpcaObj.it$H),    is_false())
-  expect_that(identical(stpcaObj.it.b$K,    stpcaObj.it$K),    is_false())
-  expect_that(identical(stpcaObj.it.b$beta, stpcaObj.it$beta), is_false())
+  expect_that(identical(stpcaObj.it.b$H,    stpcaObj.it.t$H),    is_false())
+  expect_that(identical(stpcaObj.it.b$K,    stpcaObj.it.t$K),    is_false())
+  expect_that(identical(stpcaObj.it.b$beta, stpcaObj.it.t$beta), is_false())
 })
 
 test_that("stpca.iterate.beta does not change theta", {
-  expect_identical(stpcaObj.it.b$W,     stpcaObj.it$W)
-  expect_identical(stpcaObj.it.b$sigSq, stpcaObj.it$sigSq)
-  expect_identical(stpcaObj.it.b$V,     stpcaObj.it$V)
-  expect_identical(stpcaObj.it.b$ll,    stpcaObj.it$ll)
-  expect_identical(stpcaObj.it.b$lp,    stpcaObj.it$lp)
-  expect_identical(stpcaObj.it.b$lps,   stpcaObj.it$lps)
+  expect_identical(stpcaObj.it.b$W,     stpcaObj.it.t$W)
+  expect_identical(stpcaObj.it.b$sigSq, stpcaObj.it.t$sigSq)
+  expect_identical(stpcaObj.it.b$V,     stpcaObj.it.t$V)
+  expect_identical(stpcaObj.it.b$ll,    stpcaObj.it.t$ll)
+  expect_identical(stpcaObj.it.b$lp,    stpcaObj.it.t$lp)
+  expect_identical(stpcaObj.it.b$lps,   stpcaObj.it.t$lps)
 })
 
 test_that("beta has sensible 95% confidence intervals", {
@@ -92,25 +114,6 @@ test_that("beta has sensible 95% confidence intervals", {
   }
 })
 
-context("stpca.iterate.theta")
-
-test_that("stpca.iterate.theta increases log posterior", {
-  expect_gt(stpcaObj.it.t$lp, stpcaObj.it.b$lp)
-})
-
-test_that("stpca.iterate.theta only changes relevant variables", {
-  expect_identical(stpcaObj.it.t$H,            stpcaObj.it.b$H)
-  expect_identical(stpcaObj.it.t$K,            stpcaObj.it.b$K)
-  expect_identical(stpcaObj.it.t$beta,         stpcaObj.it.b$beta)
-  expect_identical(stpcaObj.it.t$log_evidence, stpcaObj.it.b$log_evidence)
-
-  expect_that(identical(stpcaObj.it.t$W,     stpcaObj.it.b$W),     is_false())
-  expect_that(identical(stpcaObj.it.t$sigSq, stpcaObj.it.b$sigSq), is_false())
-  expect_that(identical(stpcaObj.it.t$V,     stpcaObj.it.b$V),     is_false())
-  expect_that(identical(stpcaObj.it.t$ll,    stpcaObj.it.b$ll),    is_false())
-  expect_that(identical(stpcaObj.it.t$lp,    stpcaObj.it.b$lp),    is_false())
-  expect_that(identical(stpcaObj.it.t$lps,   stpcaObj.it.b$lps),   is_false())
-})
 
 # it doesn't!! It finds a saddle point!
 #test_that("stpca.iterate.theta finds local maximum in theta", {

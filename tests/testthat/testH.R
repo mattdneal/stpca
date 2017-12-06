@@ -25,7 +25,7 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
       -stpca.log_posterior(X, stpcaObj$K, W_, stpcaObj$mu, stpcaObj$sigSq)
     }, x=stpcaObj$W[,i]))
 
-    expect_equal(Hwi.analytic, Hwi.numeric)
+    expect_equal(Hwi.analytic@x, Hwi.numeric@x, tolerance=1e-6)
   }
 })
 

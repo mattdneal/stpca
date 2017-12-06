@@ -17,9 +17,10 @@ dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
 locations = dataset$grid
 X = as.matrix(dataset$X)
 
-beta0 = c(cov.SE.beta0(X, locations, k), log(1e-3))
+#beta0 = c(cov.SE.beta0(X, locations, k), log(1e-3))
+beta0 = log(c(1, 0.6, 0.6, 1e-3))
 
-stpcaObj = stpca(X, k, locations, cov.noisy.SE, cov.noisy.SE.d, beta0, trace=0, maxit.inner=0, maxit.outer=0)
+stpcaObj = stpca(X, k, locations, cov.noisy.MR, cov.noisy.MR.d, beta0, trace=0, maxit.inner=0, maxit.outer=0)
 
 H = stpca.H(X, stpcaObj$W, stpcaObj$mu, stpcaObj$sigSq, stpcaObj$K)
 
@@ -29,5 +30,5 @@ maxit.outer=1
 stpcaObj.it = stpca.iterate(stpcaObj, maxit.inner=maxit.inner,
                                       maxit.outer=maxit.outer)
 
-stpcaObj.it.b = stpca.iterate.beta(stpcaObj.it)
-stpcaObj.it.t = stpca.iterate.theta(stpcaObj.it.b, maxit.inner=50)
+stpcaObj.it.t = stpca.iterate.theta(stpcaObj.it, maxit.inner=50)
+stpcaObj.it.b = stpca.iterate.beta(stpcaObj.it.t)
