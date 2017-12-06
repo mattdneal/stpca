@@ -121,10 +121,11 @@ stpca.iterate.beta <- function(stpcaObj) {
     beta   = optObj$estimate
 
     # Add 95% confidence intervals for beta
+    stdErr = sqrt(-diag(solve(maxLik::hessian(optObj))))
     ci95 = matrix(NA, nrow=2, ncol=length(beta),
                   dimnames=list(c("upper", "lower"), names(beta)))
-    ci95["upper",] = beta + sqrt(-diag(optObj$hessian))
-    ci95["lower",] = beta - sqrt(-diag(optObj$hessian))
+    ci95["upper",] = beta + stdErr
+    ci95["lower",] = beta - stdErr
     attr(beta, "ci95") = ci95
 
     # Recompute values depending on beta
