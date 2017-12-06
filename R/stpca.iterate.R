@@ -33,7 +33,6 @@ stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
                   sep=''))
     }
   }
-  stpcaObj = stpca.iterate.theta(stpcaObj, maxit.inner) # Update theta
 
   ## BIC
   n   = nrow(stpcaObj$Xc) # Number of samples
