@@ -199,21 +199,24 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   HW = list()
   for (k_ in 1:k) {
     wi = W[,k_,drop=F]
-    rhs = (Diagonal(d) +
-      K%*%Cinv*as.numeric(tcrossprod(t(wi)%*%Cinv%*%t(Xc))
-                      - n*t(wi)%*%Cinv%*%wi + n) +
-      K%*%tcrossprod(Cinv, crossprod(Cinv, (
-        crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
-        tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
-        as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
-        n*tcrossprod(wi)))))
+
     invSuccess=FALSE
     try({
-      Hwk = solve(K, rhs)
+      Kinv = solve(K)
       invSuccess=TRUE
     }, silent=TRUE)
     if (!invSuccess) { stop("Could not invert K") }
-    HW[[k_]] = Matrix(forceSymmetric(Hwk))
+
+    Hwk = Kinv +
+      Cinv*as.numeric(tcrossprod(t(wi)%*%Cinv%*%t(Xc))
+                      - n*t(wi)%*%Cinv%*%wi + n) +
+      tcrossprod(Cinv, crossprod(Cinv, (
+        crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
+        tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
+        as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
+        n*tcrossprod(wi))))
+
+    HW[[k_]] = 0.5*forceSymmetric(Hwk + t(Hwk))
   }
   return(HW)
 }
