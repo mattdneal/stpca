@@ -121,7 +121,11 @@ stpca.iterate.beta <- function(stpcaObj) {
     beta   = optObj$estimate
 
     # Add 95% confidence intervals for beta
-    stdErr = sqrt(-diag(solve(maxLik::hessian(optObj))))
+    stdErr = seq_along(beta) * Inf
+    try({
+      sigma = solve(maxLik::hessian(optObj)) # Covariance matrix of approximating Normal
+      stdErr = sqrt(-diag(sigma)) # Standard errors for each parameter
+    }, silent=TRUE)
     ci95 = matrix(NA, nrow=2, ncol=length(beta),
                   dimnames=list(c("upper", "lower"), names(beta)))
     ci95["upper",] = beta + stdErr
