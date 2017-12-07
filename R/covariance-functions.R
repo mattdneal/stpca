@@ -434,6 +434,44 @@ cov.MR.beta0 <- function(X, locations, k) {
   return(beta0)
 }
 
+#' Taper a covariance function
+#'
+#' Takes a covariance function and tapers it by returning a new covariance
+#' function which is the original multiplied by the MR covariance function. The
+#' support length of the new covariance function will thus be the support
+#' length of the MR (assuming that the original is not compactly supported).
+#'
+#' @param cov The covariance function to be tapered
+#' @param supLen The support length of the MR
+#' @export
+cov.taper <- function(cov, supLen=1) {
+  function(X, beta, ...) {
+    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    D = distanceMatrix(X, max.dist=supLen)
+    taperMat * cov(X=X, beta=beta, D=D, ...)
+  }
+}
+
+#' Taper a covariance function (partial derivatives)
+#'
+#' Works as cov.taper, except this function takes a function producing the
+#' partial derivatives of a covariance function. This modifies the function
+#' to produce the partial derivatives of the tapered covariance function.
+#'
+#' @param cov.d The partial derivative function of the covariance function to
+#'    be tapered
+#' @param supLen The support length of the MR
+#' @export
+cov.taper.d <- function(cov.d, supLen=1) {
+  function(X, beta, ...) {
+    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    D = distanceMatrix(X, max.dist=supLen)
+    lapply(cov.d(X=X, beta=beta, D=D, ...), function(dKi) {
+      dKi * taperMat
+    })
+  }
+}
+
 cov.triangular <- function(X, beta, ...) {
   D   = distanceMatrix(X, max.dist=exp(beta[2]))
   D@x = exp(beta[1])*(1 - D@x/exp(beta[2]))
