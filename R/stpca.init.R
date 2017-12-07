@@ -18,6 +18,7 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                        trace=0, max.dist=Inf, constraints=NULL) {
 
   stopifnot(all(is.finite(X)))
+  stopifnot(nrow(locations) == ncol(X))
 
   ## Define commonly used variables.
   Xc  = scale(X, scale=FALSE) # Centered data: nxd
