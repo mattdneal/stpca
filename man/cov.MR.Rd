@@ -4,7 +4,7 @@
 \alias{cov.MR}
 \title{Noisy MR}
 \usage{
-cov.MR(X, beta)
+cov.MR(X, beta, ...)
 }
 \arguments{
 \item{X}{Matrix of data}

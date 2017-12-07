@@ -4,7 +4,7 @@
 \alias{cov.noisy.MR.d}
 \title{Partial derivatives of the noisy MR covariance function}
 \usage{
-cov.noisy.MR.d(X, beta)
+cov.noisy.MR.d(X, beta, ...)
 }
 \arguments{
 \item{X}{Matrix of data}

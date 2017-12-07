@@ -4,7 +4,7 @@
 \alias{cov.noisy.MR}
 \title{Noisy MR covariance function}
 \usage{
-cov.noisy.MR(X, beta)
+cov.noisy.MR(X, beta, ...)
 }
 \arguments{
 \item{X}{Matrix of data}

@@ -4,7 +4,7 @@
 \alias{cov.MR.d}
 \title{Partial derivatives of the MR}
 \usage{
-cov.MR.d(X, beta)
+cov.MR.d(X, beta, ...)
 }
 \arguments{
 \item{X}{Matrix of data}
