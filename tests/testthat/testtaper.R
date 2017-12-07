@@ -12,7 +12,7 @@ test_that("Tapering works sensibly", {
   expect_is(K.SE.t, "sparseMatrix")
 })
 
-test_that("Tapered gradients match numerical gradients") {
+test_that("Tapered gradients match numerical gradients", {
   beta = c(0.5, 1.2)
 
   jac.num = jacobian(function(beta_) {
@@ -22,4 +22,16 @@ test_that("Tapered gradients match numerical gradients") {
   dK = cov.taper.d(cov.SE.d)(locations, beta=beta)
   jac.analytic = vapply(dK, function(dKi) c(as.matrix(dKi)), numeric(d*d))
   expect_equivalent(jac.analytic, jac.num)
-}
+})
+
+test_that("Tapered covariance functions can accept (and ignore) D", {
+  D = rdist(locations)
+  expect_error(
+    cov.taper(cov.SE)(locations, beta=rnorm(2), D=rdist(D)),
+    NA # Assert that *no* error is expected
+  )
+  expect_error(
+    cov.taper.d(cov.SE.d)(locations, beta=rnorm(2), D=rdist(D)),
+    NA
+  )
+})

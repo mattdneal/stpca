@@ -446,9 +446,17 @@ cov.MR.beta0 <- function(X, locations, k) {
 #' @export
 cov.taper <- function(cov, supLen=1) {
   function(X, beta, ...) {
-    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    # Formals for 'cov'
+    args = list(..., X=X, beta=beta)
+
+    # Sparse distance matrix; don't need full K
     D = distanceMatrix(X, max.dist=supLen)
-    taperMat * cov(X=X, beta=beta, D=D, ...)
+    args$D = D
+    K = do.call(cov, args)
+
+    # Sparse tapered K
+    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    taperMat * K
   }
 }
 
@@ -464,11 +472,17 @@ cov.taper <- function(cov, supLen=1) {
 #' @export
 cov.taper.d <- function(cov.d, supLen=1) {
   function(X, beta, ...) {
-    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    # Formals for 'cov.d'
+    args = list(..., X=X, beta=beta)
+
+    # Sparse distance matrix so we don't compute full dKs
     D = distanceMatrix(X, max.dist=supLen)
-    lapply(cov.d(X=X, beta=beta, D=D, ...), function(dKi) {
-      dKi * taperMat
-    })
+    args$D = D
+    dK = do.call(cov.d, args)
+
+    # Apply taper to supported elements of each dK
+    taperMat = cov.MR(X, beta=log(c(1, rep(supLen, ncol(X)))))
+    lapply(dK, function(dKi) dKi * taperMat)
   }
 }
 
