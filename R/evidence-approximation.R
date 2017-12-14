@@ -196,28 +196,34 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
   Cinv = forceSymmetric(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
+  invSuccess=FALSE
+  try({
+    Kinv = solve(K)
+    invSuccess=TRUE
+  }, silent=TRUE)
+  if (!invSuccess) { stop("Could not invert K") }
+
   HW = list()
   for (k_ in 1:k) {
     wi = W[,k_,drop=F]
 
-    invSuccess=FALSE
-    try({
-      Kinv = solve(K)
-      invSuccess=TRUE
-    }, silent=TRUE)
-    if (!invSuccess) { stop("Could not invert K") }
+    wtCinvw = crossprod(wi, Cinv%*%wi)
+    term2 = Cinv*as.numeric(crossprod(Xc%*%(Cinv%*%wi))
+                            - n*wtCinvw + n)
+    term3a = tcrossprod(crossprod(Xc, Xc %*% (Cinv %*% wi)), wi)
+    term3b = as.numeric(wtCinvw - 1)*crossprod(Xc)
+    term3c = -n*tcrossprod(wi)
+    term3 = tcrossprod(Cinv, crossprod(Cinv, (
+      term3a + t(term3a) + term3b + term3c
+    )))
+    Hwk = Kinv + term2 + term3
 
-    Hwk = Kinv +
-      Cinv*as.numeric(tcrossprod(t(wi)%*%Cinv%*%t(Xc))
-                      - n*t(wi)%*%Cinv%*%wi + n) +
-      tcrossprod(Cinv, crossprod(Cinv, (
-        crossprod(Xc)%*%Cinv%*%tcrossprod(wi) +
-        tcrossprod(wi)%*%Cinv%*%crossprod(Xc) +
-        as.numeric(t(wi)%*%Cinv%*%wi - 1)*crossprod(Xc) -
-        n*tcrossprod(wi))))
+    if (ncol(K) > 100) browser()
 
     HW[[k_]] = 0.5*forceSymmetric(Hwk + t(Hwk))
   }
+
+
   return(HW)
 }
 
