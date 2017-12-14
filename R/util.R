@@ -28,7 +28,19 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
     }
 
     # Use fields.rdist.near to find all distances within max.dist, stored as triples
-    Dtriples = fields.rdist.near(X, X2, delta=max.dist, max.points = max.points)
+    continue = FALSE
+    while (!continue) {
+      Dtriples = try(fields.rdist.near(X, X2, delta=max.dist, max.points = max.points), silent=TRUE)
+      if (inherits(Dtriples, "try-error")) {
+        if (grepl("Ran out of space, increase max.points", gettext(Dtriples), ignore.case=TRUE)) {
+          max.points = max.points * 2
+        } else {
+          stop(Dtriples)
+        }
+      } else {
+         continue=TRUE
+      }
+    }
 
     if (length(Dtriples$ra) == nrow(X) * nrow(X2)) {
       # Covariance matrix is dense: all points lie within maximum distance
