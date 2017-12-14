@@ -120,18 +120,6 @@ stpca.iterate.beta <- function(stpcaObj) {
     optObj = maxBFGS(logLik, grad, start=beta, constraints=constraints)
     beta   = optObj$estimate
 
-    # Add 95% confidence intervals for beta
-    stdErr = seq_along(beta) * Inf
-    try({
-      sigma = solve(maxLik::hessian(optObj)) # Covariance matrix of approximating Normal
-      stdErr = sqrt(-diag(sigma)) # Standard errors for each parameter
-    }, silent=TRUE)
-    ci95 = matrix(NA, nrow=2, ncol=length(beta),
-                  dimnames=list(c("upper", "lower"), names(beta)))
-    ci95["upper",] = beta + stdErr
-    ci95["lower",] = beta - stdErr
-    attr(beta, "ci95") = ci95
-
     # Recompute values depending on beta
     K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
     H    = stpca.H(Xc, W, rep(0,ncol(Xc)), sigSq, K)
