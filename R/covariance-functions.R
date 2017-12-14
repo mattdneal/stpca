@@ -15,6 +15,7 @@
 #' @include util.R
 #' @import Matrix
 cov.noisy.RQ <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==4)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   K = cov.RQ(X, X2, beta[1:3], D) + cov.independent(X, X2, beta[4], D)
@@ -32,6 +33,7 @@ cov.noisy.RQ <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.RQ.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==4)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   return(append(cov.RQ.d(X, X2, beta[1:3], D),
@@ -53,6 +55,7 @@ cov.noisy.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.SE <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==3)
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
@@ -71,6 +74,7 @@ cov.noisy.SE <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.SE.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==3)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   return(append(cov.SE.d(X, X2, beta[1:2], D),
@@ -98,6 +102,7 @@ cov.noisy.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(all(Matrix::diag(K)==exp(beta[1])))
 #' stopifnot(all(K[upper.tri(K)]<exp(beta[1])))
 cov.SE <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==2)
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
@@ -142,6 +147,7 @@ cov.SE <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(all.equal(as.numeric(Ks.2points[[1]]), Ks.2points.num[1]))
 #' stopifnot(all.equal(as.numeric(Ks.2points[[2]]), Ks.2points.num[2]))
 cov.SE.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2)
   }
@@ -166,6 +172,7 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(length(beta0) == 2)
 #' stopifnot(all(is.finite(beta0)))
 cov.SE.beta0 <- function(X, locations, k) {
+  stopifnot(is.matrix(X))
   n = nrow(X); d = ncol(X)
 
   covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=0)
@@ -203,6 +210,7 @@ cov.SE.beta0 <- function(X, locations, k) {
 #' stopifnot(all(svd(K)$d>0)) # K is positive definite
 #' stopifnot(all(K[upper.tri(K)]<K[1,1])) # Largest element is on diagonal
 cov.RQ <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==3)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
   D@x = exp(beta[1])*(1 + (D@x*D@x)*0.5*exp(-2*beta[2]-beta[3]))^(-exp(beta[3]))
@@ -228,6 +236,7 @@ cov.RQ <- function(X, X2, beta, D=NA, ...) {
 #' }, x=beta)
 #' stopifnot(all.equal(Ks.2points, Ks.2points.num))
 cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==3)
   if (all(is.na(D))) { D = distanceMatrix(X, X2) }
 
@@ -268,6 +277,7 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(length(beta0) == 3)
 #' stopifnot(all(is.finite(beta0)))
 cov.RQ.beta0 <- function(X, locations, k) {
+  stopifnot(is.matrix(X))
   beta0SE = cov.SE.beta0(X, locations, k)
 
   #browser()
@@ -295,6 +305,7 @@ cov.RQ.beta0 <- function(X, locations, k) {
 #' @include util.R
 #' @import Matrix
 cov.independent <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==1)
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2, max.dist=1e-8)
@@ -317,6 +328,7 @@ cov.independent <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.independent.d <- function(X, X2, beta, D=NA, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==1)
   if (all(is.na(D))) {
     D = distanceMatrix(X, X2, max.dist=1e-8)
@@ -339,6 +351,7 @@ cov.independent.d <- function(X, X2, beta, D=NA, ...) {
 #' @include util.R
 #' @import Matrix
 cov.MR <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==ncol(X)+1)
   sigVar = exp(beta[1])  # Signal variance: k(0)
   supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
@@ -359,6 +372,7 @@ cov.MR <- function(X, beta, ...) {
 #' @include util.R
 #' @import Matrix
 cov.MR.d <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==ncol(X)+1)
   sigVar = exp(beta[1])  # Signal variance: k(0)
   supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
@@ -399,6 +413,7 @@ cov.MR.d <- function(X, beta, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.MR <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==ncol(X)+2)
   K = cov.MR(X, beta=beta[1:(ncol(X)+1)]) +
       cov.independent(X, beta=beta[-(1:(ncol(X)+1))])
@@ -415,6 +430,7 @@ cov.noisy.MR <- function(X, beta, ...) {
 #' @include util.R
 #' @import Matrix
 cov.noisy.MR.d <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   stopifnot(length(beta)==ncol(X)+2)
   return(append(cov.MR.d(X, beta=beta[1:(ncol(X)+1)]),
                 cov.independent.d(X, beta=beta[-(1:(ncol(X)+1))])))
@@ -426,6 +442,7 @@ cov.noisy.MR.d <- function(X, beta, ...) {
 #' @param k Latent dimensionality used in stpca
 #' @export
 cov.MR.beta0 <- function(X, locations, k) {
+  stopifnot(is.matrix(X))
   beta0 = cov.SE.beta0(X, locations, k)
   beta0[2] = beta0[2] + log(2.5)
   beta0[2:(ncol(locations)+1)] = beta0[2]
@@ -487,12 +504,14 @@ cov.taper.d <- function(cov.d, supLen=1) {
 }
 
 cov.triangular <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   D   = distanceMatrix(X, max.dist=exp(beta[2]))
   D@x = exp(beta[1])*(1 - D@x/exp(beta[2]))
   return(D)
 }
 
 cov.triangular.d <- function(X, beta, ...) {
+  stopifnot(is.matrix(X))
   D   = distanceMatrix(X, max.dist=exp(beta[2]))
 
   dKdBeta1 = D
