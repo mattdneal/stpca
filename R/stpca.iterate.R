@@ -34,13 +34,6 @@ stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
     }
   }
 
-  ## BIC
-  n   = nrow(stpcaObj$Xc) # Number of samples
-  d   = ncol(stpcaObj$Xc) # Original dimensionality
-  k   = ncol(stpcaObj$W) # Latent dimensionality
-  dof = d*k - 0.5*k*(k-1) + 3 # Degrees of Freedom for PPCA
-  stpcaObj$bic = -2*stpcaObj$ll + dof*log(n)
-
   return(stpcaObj)
 }
 
@@ -82,6 +75,17 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
       lp = stpca.log_posterior(Xc, K, W, rep(0,ncol(Xc)), sigSq)
       lps[length(lps)+1] = lp
     }
+
+    # Normalise log posteriors
+    levidence = stpca.log_evidence(Xc, K, W, 0, sigSq)
+    recentlps = (length(lps)+1-iteration):length(lps)
+    lps[recentlps] = lps[recentlps] - levidence
+    lp = lp - levidence
+
+    # BIC
+    n = nrow(Xc); d = ncol(Xc); k = ncol(W)
+    dof = d*k - 0.5*k*(k-1) + 3 # Degrees of Freedom for PPCA
+    bic = -2*lp + dof*log(n)
   })
 
   stpcaObj$W     = vars$W
@@ -91,6 +95,7 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
   stpcaObj$ll    = vars$ll
   stpcaObj$lp    = vars$lp
   stpcaObj$lps   = vars$lps
+  stpcaObj$bic   = vars$bic
   return(stpcaObj)
 }
 
