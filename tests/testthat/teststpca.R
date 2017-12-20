@@ -105,16 +105,6 @@ test_that("stpca.iterate.beta does not change theta", {
   expect_identical(stpcaObj.it.b$lps,   stpcaObj.it.t$lps)
 })
 
-test_that("beta has sensible 95% confidence intervals", {
-  ci95 = attr(stpcaObj.it.b$beta, "ci95")
-  expect_is(ci95, "matrix")
-  for (i in seq_along(stpcaObj$beta)) {
-    expect_lt(stpcaObj.it.b$beta[i], ci95["upper",i])
-    expect_gt(stpcaObj.it.b$beta[i], ci95["lower",i])
-  }
-})
-
-
 # it doesn't!! It finds a saddle point!
 #test_that("stpca.iterate.theta finds local maximum in theta", {
 #  params = list(W=stpcaObjNew$W, sigSq=stpcaObjNew$sigSq, mu=stpcaObjNew$mu)
