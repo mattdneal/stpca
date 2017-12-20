@@ -1,6 +1,6 @@
 #' @import Matrix
 #' @import fields
-distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
+distanceMatrix <- function(X, X2=NA, max.dist=Inf) {
   stopifnot(!(all(is.na(nrow(X)))))
 
   symmetric=FALSE
@@ -12,22 +12,22 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
     d = max(nrow(X), nrow(X2))
   }
 
-  if (!is.infinite(max.dist)) {
+  if (max.dist == Inf) {
+    if (symmetric) {
+      D = Matrix(rdist(X), sparse=FALSE)
+    } else {
+      D = Matrix(rdist(X, X2), sparse=FALSE)
+    }
+  } else {
     # Take a guess at the maximum number of points needed. Calculate the volume
     # of data-space neighboring a single point. The maximum number of ponts is
-    #    #points x (#points x neighboring.volume)
-    #  =
-    #    #points x (expected #neighbours)
-    if (is.na(max.points)) {
-      d_s        = ncol(X) # Spatial dimensions
-      #nBallVol   = pi^(0.5*d_s) * max.dist^d_s / gamma(0.5*d_s+1)
-      #max.points = ceiling(nBallVol*d*d)
-      nCubeVol   = (2*max.dist)^d_s
-      max.points = ceiling(nCubeVol*d)*d*2
-      #max.points = max(ceiling(nCubeVol*d)*d*2, nrow(X) * nrow(X2)) # TODO: Is this better?
-    }
+    # nPoints x (nPoints x neighboring.volume) = nPoints x (expected neighbours)
+    d_s        = ncol(X) # Spatial dimensions
+    nCubeVol   = (2*max.dist)^d_s
+    max.points = ceiling(nCubeVol*d)*d*2
+    #max.points = max(ceiling(nCubeVol*d)*d*2, nrow(X) * nrow(X2)) # TODO: Is this better?
 
-    # Use fields.rdist.near to find all distances within max.dist, stored as triples
+    # Use fields.rdist.near to find all distances < max.dist, stored as triples
     continue = FALSE
     while (!continue) {
       Dtriples = try(fields.rdist.near(X, X2, delta=max.dist, max.points = max.points), silent=TRUE)
@@ -59,12 +59,6 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf, max.points=NA) {
     } else {
       D = sparseMatrix(i=Dtriples$ind[,1], j=Dtriples$ind[,2],
                        dims=c(nrow(X), nrow(X2)), x=Dtriples$ra, index1=TRUE)
-    }
-  } else {
-    if (symmetric) {
-      D = Matrix(rdist(X), sparse=FALSE)
-    } else {
-      D = Matrix(rdist(X, X2), sparse=FALSE)
     }
   }
   return(D)
