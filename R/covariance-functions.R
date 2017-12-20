@@ -172,7 +172,7 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(length(beta0) == 2)
 #' stopifnot(all(is.finite(beta0)))
 cov.SE.beta0 <- function(X, locations, k) {
-  stopifnot(is.matrix(X))
+  stopifnot(is.matrix(locations))
   n = nrow(X); d = ncol(X)
 
   covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=0)
@@ -277,7 +277,7 @@ cov.RQ.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(length(beta0) == 3)
 #' stopifnot(all(is.finite(beta0)))
 cov.RQ.beta0 <- function(X, locations, k) {
-  stopifnot(is.matrix(X))
+  stopifnot(is.matrix(locations))
   beta0SE = cov.SE.beta0(X, locations, k)
 
   #browser()
@@ -442,7 +442,7 @@ cov.noisy.MR.d <- function(X, beta, ...) {
 #' @param k Latent dimensionality used in stpca
 #' @export
 cov.MR.beta0 <- function(X, locations, k) {
-  stopifnot(is.matrix(X))
+  stopifnot(is.matrix(locations))
   beta0 = cov.SE.beta0(X, locations, k)
   beta0[2] = beta0[2] + log(2.5)
   beta0[2:(ncol(locations)+1)] = beta0[2]
