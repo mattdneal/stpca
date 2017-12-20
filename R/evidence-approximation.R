@@ -194,7 +194,7 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   Xc = sweep(X, 2, mu)
 
   R = Matrix::chol(crossprod(W) + sigSq*diag(k))
-  Cinv = forceSymmetric(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+  Cinv = (Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
 
   invSuccess=FALSE
   try({
@@ -210,15 +210,19 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
     wtCinvw = crossprod(wi, Cinv%*%wi)
     term2 = Cinv*as.numeric(crossprod(Xc%*%(Cinv%*%wi))
                             - n*wtCinvw + n)
-    term3a = tcrossprod(crossprod(Xc, Xc %*% (Cinv %*% wi)), wi)
-    term3b = as.numeric(wtCinvw - 1)*crossprod(Xc)
-    term3c = -n*tcrossprod(wi)
-    term3 = tcrossprod(Cinv, crossprod(Cinv, (
-      term3a + t(term3a) + term3b + term3c
-    )))
-    Hwk = Kinv + term2 + term3
 
-    if (ncol(K) > 100) browser()
+    # Term 3 is C^-1(A + A' + B + D)C^-1
+    term3A = tcrossprod(crossprod(Xc, Xc %*% (Cinv %*% wi)), wi)
+    term3B = as.numeric(wtCinvw - 1)*crossprod(Xc)
+    term3D = -n*tcrossprod(wi)
+
+    ABDsum = term3A + t(term3A) + term3B + term3D
+
+    term3 = tcrossprod(Cinv, crossprod(Cinv, (
+      ABDsum
+    )))
+
+    Hwk = Kinv + term2 + term3
 
     HW[[k_]] = 0.5*forceSymmetric(Hwk + t(Hwk))
   }
