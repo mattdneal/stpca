@@ -31,7 +31,7 @@ synthesize_data <- function(n, k, K, noisesd=0) {
 #' @param noisesd standard deviation of noise added to data
 #' @import fields
 synthesize_data_kern <- function(n, k, dim, kern, noisesd=0) {
-  grid = make.surface.grid(lapply(dim, function(d_) seq(0, 1, length=d_)))
+  grid = as.matrix(make.surface.grid(lapply(dim, function(d_) seq(0, 1, length=d_))))
   K    = kern(grid)
   data.synth = synthesize_data(n, k, K, noisesd)
   return(list(X    = data.synth$X,
