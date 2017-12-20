@@ -35,24 +35,18 @@ test_that("Iterating Expectation and sigma^2 maximisation finds local max", {
   Xc = stpcaObj$Xc
   K = stpcaObj$K
   W = stpcaObj$W
-  mu = rep(0, d)
   sigSq = stpcaObj$sigSq
   for (i in 1:200) {
     E     = EM.E(Xc, stpcaObj$W, sigSq)
     sigSq = EM.M.sigSq(Xc, stpcaObj$W, E$V, E$Vvar)
   }
 
-  lp = stpca.log_posterior(Xc, K, W, mu, sigSq)
+  H = numDeriv::hessian(function(sigSq_) {
+    stpca.log_posterior(Xc, K, W, 0, sigSq_)
+  }, sigSq)[1]
 
-  delta = 1e-8
-  lpUp = stpca.log_posterior(Xc, K, W, mu, sigSq+delta)
-  lpDn = stpca.log_posterior(Xc, K, W, mu, sigSq-delta)
-
-  #gradient = (lpUp-lpDn)/(2*delta)
-  #expect_lt(gradient, 1e-6)
-
-  expect_gte(lp, lpUp)
-  expect_gte(lp, lpDn)
+  # 1x1 hessian is negative definite => local maximum
+  expect_lt(H, 0)
 })
 
 context("maximisation in W")
