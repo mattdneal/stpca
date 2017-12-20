@@ -55,11 +55,6 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
 
   expectations = EM.E(Xc, W, sigSq)
 
-  lp   = stpca.log_posterior(Xc, K, W, rep(0,d), sigSq) # Current log posterior
-  ll   = stpca.log_likelihood(Xc, W, rep(0,d), sigSq)
-  dof  = d*k - 0.5*k*(k-1) + 3 + length(beta0) # Degrees of Freedom for PPCA + #HPs
-  bic  = -2*ll + dof*log(n)
-
   stpcaObj = list(n     = nrow(Xc),
                   d     = ncol(Xc),
                   k     = k,
@@ -69,10 +64,10 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   mu    = mu,
                   V     = expectations$V,
                   Vvar  = expectations$Vvar,
-                  ll    = ll,
-                  lp    = lp,
-                  lps   = lp,
-                  bic   = bic,
+                  ll    = numeric(0),
+                  lp    = numeric(0),
+                  lps   = numeric(0),
+                  bic   = numeric(0),
                   beta  = beta0,
                   D     = D,
                   K     = K,
@@ -81,8 +76,8 @@ stpca.init <- function(X, k, locations, covar.fn, covar.fn.d=NULL, beta0=c(),
                   covar.fn = covar.fn,
                   locations = locations,
                   covar.fn.d = covar.fn.d,
-                  log_evidence = NA,
-                  log_evidences = c(),
+                  log_evidence = numeric(0),
+                  log_evidences = numeric(0),
                   constraints = constraints)
   class(stpcaObj) = "stpca"
   return(stpcaObj)
