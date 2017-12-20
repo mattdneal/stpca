@@ -9,7 +9,7 @@ synthesize_data <- function(n, k, K, noisesd=0) {
   d   = ncol(K)
   stopifnot(k<=d)
   R_K = chol(K)
-  W   = t(R_K) %*% matrix(rnorm(d*k), nrow=d, ncol=k)
+  W   = as.matrix(t(R_K) %*% matrix(rnorm(d*k), nrow=d, ncol=k))
   V   = mvrnorm(n=n, mu=rep(0, k), Sigma=diag(k))
   X   = V %*% t(W) + matrix(rnorm(n*d, sd=noisesd), nrow=n, ncol=d)
 
