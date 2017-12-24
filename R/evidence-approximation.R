@@ -191,7 +191,7 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   n = nrow(X)
   d = ncol(X)
   k = ncol(W)
-  Xc = sweep(X, 2, mu)
+  Xc = Matrix(sweep(X, 2, mu))
 
   M = Matrix(crossprod(W) + sigSq*diag(k))
   R = Matrix::chol(M)
@@ -201,40 +201,38 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
 
   invSuccess=FALSE
   try({
-    Kinv = solve(K)
+    Kinv = solve(K, sparse=FALSE)
     invSuccess=TRUE
   }, silent=TRUE)
   if (!invSuccess) { stop("Could not invert K") }
+  Kinv = forceSymmetric(Kinv) # Kinv isn't symmetric here; failure of solve method?
 
   HW = list()
   for (k_ in 1:k) {
-    wi = W[,k_,drop=F]
+    wi = Matrix(W[,k_,drop=F])
 
     wtCinvw = crossprod(wi, Cinv%*%wi)
     term2 = Cinv*as.numeric(crossprod(Xc%*%(Cinv%*%wi))
                             - n*wtCinvw + n)
 
-    # Term 3 is C^-1(A + A' + B + D)C^-1
-    term3A = tcrossprod(crossprod(Xc, Xc %*% (Cinv %*% wi)), wi)
+    # These 3 (d*d) matrices have all been kept symmetric to reduce computation
+    term3A = 2*symmpart(tcrossprod(crossprod(Xc, Xc %*% (Cinv %*% wi)), wi))
     term3B = as.numeric(wtCinvw - 1)*crossprod(Xc)
-    term3D = -n*tcrossprod(wi)
+    term3C = -n*tcrossprod(wi)
+    ABCsum = term3A + term3B + term3C
 
-    ABDsum = term3A + t(term3A) + term3B + term3D
-
-    AW = ABDsum %*% W
-    WtAW = crossprod(W, ABDsum%*%W)
+    AW = ABCsum %*% W
+    WtAW = crossprod(W, AW)
     AWMinvWt = AW%*%MinvWt
     term3 = (
-      ABDsum -
-      AWMinvWt - t(AWMinvWt) +
-      crossprod(MinvWt, WtAW) %*% MinvWt
+      ABCsum -
+      2*symmpart(AWMinvWt) +
+      forceSymmetric(crossprod(MinvWt, WtAW) %*% MinvWt)
     )/(sigSq*sigSq)
 
     Hwk = Kinv + term2 + term3
-
-    HW[[k_]] = 0.5*forceSymmetric(Hwk + t(Hwk))
+    HW[[k_]] = Hwk
   }
-
 
   return(HW)
 }
