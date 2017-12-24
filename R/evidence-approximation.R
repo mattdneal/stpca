@@ -193,8 +193,11 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
   k = ncol(W)
   Xc = sweep(X, 2, mu)
 
-  R = Matrix::chol(crossprod(W) + sigSq*diag(k))
+  M = Matrix(crossprod(W) + sigSq*diag(k))
+  R = Matrix::chol(M)
   Cinv = (Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+
+  MinvWt = solve(M, t(W))
 
   invSuccess=FALSE
   try({
@@ -218,9 +221,14 @@ stpca.H.W <- function(X, W, mu, sigSq, K) {
 
     ABDsum = term3A + t(term3A) + term3B + term3D
 
-    term3 = tcrossprod(Cinv, crossprod(Cinv, (
-      ABDsum
-    )))
+    AW = ABDsum %*% W
+    WtAW = crossprod(W, ABDsum%*%W)
+    AWMinvWt = AW%*%MinvWt
+    term3 = (
+      ABDsum -
+      AWMinvWt - t(AWMinvWt) +
+      crossprod(MinvWt, WtAW) %*% MinvWt
+    )/(sigSq*sigSq)
 
     Hwk = Kinv + term2 + term3
 
