@@ -75,7 +75,7 @@ stpca.log_prior <- function(K, W) {
     # This is more stable than a base matrix solution, but not for sparse
     # Matrices (dealt with above)
     if (any(!is.finite(diag(K)))) { return(-Inf) }
-    trWtKinvW = sum(diag(Matrix::crossprod(W, solve(K, W))))
+    trWtKinvW = sum(diag(Matrix::crossprod(W, solve(K, W)))) # Fnorm(R\W)^2?
     # TODO: Calculate determinant from decomposition
     logDetK = as.numeric(determinant(K, logarithm=TRUE)$modulus)
   }
@@ -98,17 +98,28 @@ stpca.log_posterior <- function(X, K, W, mu, sigSq) {
   return(stpca.log_likelihood(X, W, mu, sigSq) + stpca.log_prior(K, W))
 }
 
-stpca.complete_log_posterior <- function(X, V, W, mu, sigSq, K) {
+stpca.complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
   require(mvtnorm)
-  X = sweep(X, 2, mu)
-  pr1 = sum(dnorm(V, log=TRUE)) # log p(V)
-  pr2 = stpca.log_prior(K, W) # log p(theta)
-  pr3 = sum(vapply(1:nrow(X), function(i) { # log p(X | theta, V)
-    dmvnorm(X[i,],
-            mean=W %*% V[i,],
-            sigma=sigSq*diag(ncol(X)),
-            log=TRUE)
-  }, numeric(1)))
+  d = ncol(X)
+  k = ncol(W)
+  n = nrow(X)
+  Xc = sweep(X, 2, mu)
+
+  # E[ log p(V) | V ]
+  pr1 = -0.5*(n*k*log(2*pi) +
+              sum(diag(Reduce('+', Vvar))))
+
+  # log p(\theta | \beta)
+  pr2 = stpca.log_prior(K, W)
+
+  # E[ log p(X | V, \theta) | V ]
+  pr3 = -(n*d*log(2*pi*sigSq) +
+          sum(diag(crossprod(W)%*%Reduce('+', Vvar)))/sigSq -
+          2*sum(vapply(1:nrow(Xc), function(n_) {
+            V[n_,] %*% crossprod(W, Xc[n_,])
+          }, numeric(1)))/sigSq +
+          (norm(Xc, 'F')^2)/sigSq)*0.5
+
   return(pr1 + pr2 + pr3)
 }
 
