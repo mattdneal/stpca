@@ -33,6 +33,8 @@ stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
                   sep=''))
     }
   }
+  # Evidences computations are only valid after W has been updated
+  stpcaObj = stpca.iterate.theta(stpcaObj, maxit.inner)
 
   return(stpcaObj)
 }
@@ -48,6 +50,7 @@ stpca.iterate <- function(stpcaObj, trace=0, report.iter=10,
 #' @include EM.R
 stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
   vars = within(unclass(stpcaObj), {
+    new_lps = numeric(maxit.inner)
     for (iteration in seq_len(maxit.inner)) {
       # Expectation step
       expectations = EM.E(Xc, W, sigSq)
@@ -71,16 +74,22 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
       V     = V %*% W.svd$v
 
       # Calculate new log posterior
-      ll = stpca.log_likelihood(Xc, W, rep(0,ncol(Xc)), sigSq)
-      lp = stpca.log_posterior(Xc, K, W, rep(0,ncol(Xc)), sigSq)
       lps[length(lps)+1] = lp
+
+      # ln p(X | \theta) + ln p(\theta | \beta)
+      new_lps[iteration] = stpca.log_posterior(Xc, K, W, rep(0,ncol(Xc)), sigSq)
     }
 
-    # Normalise log posteriors
-    levidence = stpca.log_evidence(Xc, K, W, 0, sigSq)
-    recentlps = (length(lps)+1-iteration):length(lps)
-    lps[recentlps] = lps[recentlps] - levidence
-    lp = lp - levidence
+    ll = stpca.log_likelihood(Xc, W, rep(0,ncol(Xc)), sigSq)
+
+    # Assuming convergence, W = \hat{W}, so the evidence can be approximated
+    log_evidence = stpca.log_evidence(Xc, K, W, 0, sigSq)
+    log_evidences = c(log_evidences, log_evidence)
+
+    # Normalise the new_lps, giving p(\theta | X, \beta)
+    new_lps = new_lps - log_evidence
+    lps = c(lps, new_lps)
+    lp = new_lps[maxit.inner]
 
     # BIC
     n = nrow(Xc); d = ncol(Xc); k = ncol(W)
@@ -96,6 +105,8 @@ stpca.iterate.theta <- function(stpcaObj, maxit.inner=10) {
   stpcaObj$lp    = vars$lp
   stpcaObj$lps   = vars$lps
   stpcaObj$bic   = vars$bic
+  stpcaObj$log_evidence  = vars$log_evidence
+  stpcaObj$log_evidences = vars$log_evidences
   return(stpcaObj)
 }
 
@@ -128,14 +139,10 @@ stpca.iterate.beta <- function(stpcaObj) {
     # Recompute values depending on beta
     K    = covar.fn(locations, beta=beta, D=D, max.dist=max.dist)
     H    = stpca.H(Xc, W, rep(0,ncol(Xc)), sigSq, K)
-    log_evidence = optObj$maximum
-    log_evidences = c(log_evidences, log_evidence)
   })
 
   stpcaObj$H    = vars$H
   stpcaObj$K    = vars$K
   stpcaObj$beta = vars$beta
-  stpcaObj$log_evidence  = vars$log_evidence
-  stpcaObj$log_evidences = vars$log_evidences
   return(stpcaObj)
 }
