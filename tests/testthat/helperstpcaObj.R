@@ -20,11 +20,11 @@ X = as.matrix(dataset$X)
 #beta0 = c(cov.SE.beta0(X, locations, k), log(1e-3))
 beta0 = log(c(1, 0.6, 0.6, 1e-3))
 
-stpcaObj = stpca(X, k, locations, cov.noisy.MR, cov.noisy.MR.d, beta0, trace=0, maxit.inner=0, maxit.outer=0)
+stpcaObj = stpca(X, k, locations, cov.noisy.MR, cov.noisy.MR.d, beta0, trace=0, maxit.inner=1, maxit.outer=0)
 
 H = stpca.H(X, stpcaObj$W, stpcaObj$mu, stpcaObj$sigSq, stpcaObj$K)
 
-maxit.inner=20
+maxit.inner=10
 maxit.outer=1
 
 stpcaObj.it = stpca.iterate(stpcaObj, maxit.inner=maxit.inner,

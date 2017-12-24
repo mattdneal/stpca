@@ -1,6 +1,6 @@
 context("stpca variable types")
 
-test_that("stpca.init returns a valid stpca object", {
+test_that("stpca returns a valid stpca object", {
   expect_is(stpcaObj$X,     "matrix")
   expect_is(stpcaObj$W,     "matrix")
   expect_is(stpcaObj$sigSq, "numeric")
@@ -22,10 +22,10 @@ test_that("stpca.init returns a valid stpca object", {
   expect_length(stpcaObj$sigSq, 1)
   expect_length(stpcaObj$mu, d)
   expect_equal(dim(stpcaObj$V), c(n, k))
-  expect_length(stpcaObj$ll, 0)
-  expect_length(stpcaObj$lp, 0)
-  expect_length(stpcaObj$lps, 0)
-  expect_length(stpcaObj$bic, 0)
+  expect_length(stpcaObj$ll, 1)
+  expect_length(stpcaObj$lp, 1)
+  expect_gt(length(stpcaObj$lps), 0)
+  expect_length(stpcaObj$bic, 1)
   expect_equal(dim(stpcaObj$D), c(d, d))
   expect_equal(dim(stpcaObj$K), c(d, d))
   expect_equal(dim(locations)[1], d)
@@ -55,7 +55,6 @@ test_that("stpca.iterate returns a valid stpca object", {
   expect_equal(dim(stpcaObj.it$V), c(n, k))
   expect_length(stpcaObj.it$ll, 1)
   expect_length(stpcaObj.it$lp, 1)
-  expect_length(stpcaObj.it$lps, maxit.inner*maxit.outer)
   expect_length(stpcaObj.it$bic, 1)
   expect_equal(dim(stpcaObj.it$D), c(d, d))
   expect_equal(dim(stpcaObj.it$K), c(d, d))
@@ -72,14 +71,12 @@ test_that("stpca.iterate.theta only changes relevant variables", {
   expect_identical(stpcaObj.it.t$H,            stpcaObj.it$H)
   expect_identical(stpcaObj.it.t$K,            stpcaObj.it$K)
   expect_identical(stpcaObj.it.t$beta,         stpcaObj.it$beta)
-  expect_identical(stpcaObj.it.t$log_evidence, stpcaObj.it$log_evidence)
 
   expect_that(identical(stpcaObj.it.t$W,     stpcaObj.it$W),     is_false())
   expect_that(identical(stpcaObj.it.t$sigSq, stpcaObj.it$sigSq), is_false())
   expect_that(identical(stpcaObj.it.t$V,     stpcaObj.it$V),     is_false())
   expect_that(identical(stpcaObj.it.t$ll,    stpcaObj.it$ll),    is_false())
   expect_that(identical(stpcaObj.it.t$lp,    stpcaObj.it$lp),    is_false())
-  expect_that(identical(stpcaObj.it.t$lps,   stpcaObj.it$lps),   is_false())
 })
 
 context("stpca.iterate.beta")
