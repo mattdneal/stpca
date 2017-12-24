@@ -15,7 +15,7 @@ EM.E <- function(Xc, W, sigSq) {
 EM.M.sigSq <- function(Xc, W, V, Vvar) {
   sigSqNew = (
     norm(Xc, 'F')^2 -
-    2*sum(vapply(1:nrow(Xc), function(n_) V[n_,] %*% t(W) %*% Xc[n_,], numeric(1))) +
+    2*sum(vapply(1:nrow(Xc), function(n_) V[n_,] %*% crossprod(W, Xc[n_,]), numeric(1))) +
     sum(vapply(1:ncol(Xc), function(d_) W[d_,] %*% Reduce('+', Vvar) %*% W[d_,], numeric(1)))
   )/(nrow(Xc)*ncol(Xc))
   return(max(0, sigSqNew))
