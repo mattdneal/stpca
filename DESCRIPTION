@@ -1,0 +1,29 @@
+Package: stpca
+Title: Structured PCA
+Version: 0.1
+Author: Jim Skinner <j.r.skinner@warwick.ac.uk>
+Maintainer: Jim Skinner <j.r.skinner@warwick.ac.uk>
+Authors@R: person("Jim", "Skinner", email = "j.r.skinner@warwick.ac.uk",
+                  role = c("aut", "cre"))
+Description: R package for StPCA. A linear latent variable model similar to PPCA
+  but with a user-specified prior on the covariance structure of each column of
+  the loadings matrix. Supports tools for model selection.
+Depends: R (>= 3.1.0)
+License: MIT + file LICENSE
+LazyData: true
+Collate: 
+    'EM.R'
+    'synthesize-data.R'
+    'util.R'
+    'covariance-functions.R'
+    'evidence-approximation.R'
+    'predict.R'
+    'simulate.R'
+    'statistical-quantities.R'
+    'stpca.iterate.R'
+    'stpca.init.R'
+    'stpca.R'
+Imports: functional, MASS, fields, maxLik, Matrix, numDeriv
+ByteCompile: true
+RoxygenNote: 6.0.1.9000
+Suggests: testthat
