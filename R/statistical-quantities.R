@@ -5,7 +5,6 @@
 #' @param mu
 #' @param sigSq
 #' @return log likelihood (numeric)
-#' @export
 #' @examples
 #' d = 50
 #' k = 5
@@ -23,14 +22,11 @@
 #' R     = svd(matrix(rnorm(k*k), ncol=k, nrow=k))$u # Random orthonormal matrix
 #'
 #' # The likelihood is invariant to multiplying  by an orthonormal matrix.
-#' l1 = stpca.log_likelihood(X, W, mu, sigSq)
-#' l2 = stpca.log_likelihood(X, W%*%R, mu, sigSq)
+#' l1 = log_likelihood(X, W, mu, sigSq)
+#' l2 = log_likelihood(X, W%*%R, mu, sigSq)
 #' stopifnot(all.equal(l1, l2))
-stpca.log_likelihood <- function(X, W, mu, sigSq) {
-  if (is.vector(X)) {X = matrix(X, nrow=1)}
-
+log_likelihood <- function(X, W, mu, sigSq) {
   Xc = sweep(X, 2, mu)
-
   d = nrow(W)
   k = ncol(W)
   n = nrow(X)
@@ -45,60 +41,7 @@ stpca.log_likelihood <- function(X, W, mu, sigSq) {
   return(-0.5*(const + nLogDetC + trXCinvXt))
 }
 
-#' Calculate the *un-normalised* log prior for StPCA with given loadings matrix
-#'
-#' @param K Prior covariance matrix
-#' @param W Loadings matrix
-#' @return un-normalised log prior (numeric)
-#' @export
-stpca.log_prior <- function(K, W) {
-  d = nrow(W)
-  k = ncol(W)
-
-  # This special case for sparse matrices is more numerically stable
-  if (is(K, "sparseMatrix")) {
-    if (any(!is.finite(diag(K)))) { return(-Inf) }
-
-    Kc = Cholesky(K, LDL=TRUE, pivot=TRUE)
-
-    # Fast calculation of the log determinant of K
-    #logDetK = as.numeric(-determinant(solve(Kc, system='D'), log=TRUE)$modulus)
-
-    logDetK = as.numeric(determinant(K, logarithm=TRUE)$modulus)
-    if (logDetK==Inf) {return(-Inf)}
-
-    KinvW     = solve(Kc, W, system="A")
-    trWtKinvW = sum(vapply(1:k, function(k_) (W[,k_] %*% KinvW[,k_])[1,1],
-                           numeric(1)))
-  } else {
-    K = Matrix(K)
-    # This is more stable than a base matrix solution, but not for sparse
-    # Matrices (dealt with above)
-    if (any(!is.finite(diag(K)))) { return(-Inf) }
-    trWtKinvW = sum(diag(Matrix::crossprod(W, solve(K, W)))) # Fnorm(R\W)^2?
-    # TODO: Calculate determinant from decomposition
-    logDetK = as.numeric(determinant(K, logarithm=TRUE)$modulus)
-  }
-
-  return(-0.5*( k*d*log(2*pi) +
-                k*logDetK +
-                trWtKinvW))
-}
-
-#' Calculate the *un-normalised* log posterior for StPCA with given parameters
-#'
-#' @param X Data
-#' @param K Prior covariance matrix
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
-#' @return un-normalised log posterior (numeric)
-#' @export
-stpca.log_posterior <- function(X, K, W, mu, sigSq) {
-  return(stpca.log_likelihood(X, W, mu, sigSq) + stpca.log_prior(K, W))
-}
-
-stpca.complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
+complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
   require(mvtnorm)
   d = ncol(X)
   k = ncol(W)
@@ -110,7 +53,7 @@ stpca.complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
               sum(diag(Reduce('+', Vvar))))
 
   # log p(\theta | \beta)
-  pr2 = stpca.log_prior(K, W)
+  pr2 = log_prior(K, W)
 
   # E[ log p(X | V, \theta) | V ]
   pr3 = -(n*d*log(2*pi*sigSq) +
@@ -122,5 +65,3 @@ stpca.complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
 
   return(pr1 + pr2 + pr3)
 }
-
-
