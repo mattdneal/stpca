@@ -11,7 +11,7 @@
 #' @param mu
 #' @param sigSq
 #' @return Approximate log evidence
-log_evidence <- function(X, K, W, mu, sigSq) {
+log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
   if (!any(is.finite(diag(K)))) {
     return(-Inf)
   }
@@ -23,14 +23,14 @@ log_evidence <- function(X, K, W, mu, sigSq) {
   # If the inversion cannot be done, logZ defaults to -Inf
   logZ = -Inf
   try({
-    H = compute_H(X, W, mu, sigSq, K)
+    H = compute_H(X, W, muHat, sigSqHat, K)
     logDetH = sum(vapply(H, function(Hblock) {
        as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
     }, numeric(1)))
 
     # Laplace-approximated log evidence
     logZ = (log_prior(K, W) +
-            log_likelihood(X, W, mu, sigSq) +
+            log_likelihood(X, WHat, muHat, sigSqHat) +
             (0.5*(d*k+d+1))*log(2*pi) -
             0.5*logDetH)
   }, silent=TRUE)
