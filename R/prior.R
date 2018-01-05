@@ -3,6 +3,7 @@
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix
 #' @return un-normalised log prior (numeric)
+#' @export
 log_prior <- function(K, W) {
   d = nrow(W)
   k = ncol(W)
@@ -45,6 +46,7 @@ log_prior <- function(K, W) {
 #' @param K Prior covariance matrix
 #' @param dK Prior covariance matrix derivatives
 #' @return Partial derivatives of log prior
+#' @export
 log_prior_d <- function(W, beta, K, dK) {
   deriv = numeric(length(beta))
   KinvW = solve(K, W)
