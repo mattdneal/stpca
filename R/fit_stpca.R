@@ -67,7 +67,7 @@ EM.M.sigSq <- function(Xc, W, Vmean, Vvar) {
 #' Maximization step for W
 EM.M.W <- function(Xc, sigSq, Vmean, Vvar, K) {
   xvsum = Matrix(Reduce('+', lapply(1:nrow(Xc), function(i_) tcrossprod(Xc[i_,], Vmean[i_,]))))
-  Vvarsum = Matrix(Reduce('+', Vvar))
+  Vvarsum = as(Matrix(Reduce('+', Vvar)), "dppMatrix")
 
   A = K/sigSq
   B = solve(Vvarsum)
@@ -79,7 +79,7 @@ EM.M.W <- function(Xc, sigSq, Vmean, Vvar, K) {
   # This also has the effect of making each column of W an eigenvector
   # of cov[ X | \beta, \sigma^2 ]
   W.svd = svd(W)
-  W     = W   %*% W.svd$v
+  W     = W %*% W.svd$v
 
   return(W)
 }
