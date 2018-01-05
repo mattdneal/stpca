@@ -136,14 +136,14 @@ compute_H_W <- function(X, W, mu, sigSq, K) {
 #' hyperparameters with the value of beta provided.
 #'
 #' @param K Prior covariance matrix
-#' @param dK Prior covariance matrix derivatives
+#' @param KD Prior covariance matrix derivatives
 #' @param HW list of blocks H_{w_i}
 #' @return Partial derivatives of log|H|
-log_det_H_d <- function(K, dK, HW) {
-  logDetH.d = numeric(length(dK))
-  for (i in seq_along(dK)) {
+log_det_H_d <- function(K, KD, HW) {
+  logDetH.d = numeric(length(KD))
+  for (i in seq_along(KD)) {
     logDetH.d[i] = -sum(vapply(HW, function(Hw) {
-      sum(diag( solve(K%*%Hw%*%K, dK[[i]]) ))
+      sum(diag( solve(K%*%Hw%*%K, KD[[i]]) ))
     }, numeric(1)))
   }
   return(logDetH.d)

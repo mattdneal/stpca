@@ -18,18 +18,18 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
 
   n = nrow(X)
   d = ncol(X)
-  k = ncol(W)
+  k = ncol(WHat)
 
   # If the inversion cannot be done, logZ defaults to -Inf
   logZ = -Inf
   try({
-    H = compute_H(X, W, muHat, sigSqHat, K)
+    H = compute_H(X, WHat, muHat, sigSqHat, K)
     logDetH = sum(vapply(H, function(Hblock) {
        as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
     }, numeric(1)))
 
     # Laplace-approximated log evidence
-    logZ = (log_prior(K, W) +
+    logZ = (log_prior(K, WHat) +
             log_likelihood(X, WHat, muHat, sigSqHat) +
             (0.5*(d*k+d+1))*log(2*pi) -
             0.5*logDetH)
@@ -46,20 +46,23 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
 #' @param mu
 #' @param sigSq
 #' @param beta
-#' @param dK
+#' @param KD
 #' @return Partial derivatives of approximate log evidence
-log_evidence_d <- function(X, K, W, mu, sigSq, beta, dK) {
+log_evidence_d <- function(X, K, WHat, muHat, sigSqHat, beta, KD) {
   success=FALSE
-  try({HW = H.W(X, W, mu, sigSq, K); success=TRUE})
+  try({
+    HW = compute_H_W(X, WHat, muHat, sigSqHat, K)
+    success=TRUE
+  })
 
-  if(!success) {return(lapply(seq_along(beta), function(b) 0))}
+  if(!success) return(lapply(seq_along(beta), function(b) 0))
 
-  logPrior.d = log_prior_d(W, beta, K, dK)
-  logDetH.d  = log_det_H_d(K, dK, HW)
+  logPriorD = log_prior_d(WHat, beta, K, KD)
+  logDetHD  = log_det_H_d(K, KD, HW)
 
-  logEvidence.d = vapply(seq_along(beta), function(i) {
-    logPrior.d[i] - 0.5*logDetH.d[i]
+  logEvidenceD = vapply(seq_along(beta), function(i) {
+    logPriorD[i] - 0.5*logDetHD[i]
   }, numeric(1))
-  names(logEvidence.d) = names(beta)
-  return(logEvidence.d)
+  names(logEvidenceD) = names(beta)
+  return(logEvidenceD)
 }
