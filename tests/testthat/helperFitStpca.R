@@ -22,6 +22,10 @@ beta0 = log(c(1, 0.6, 0.6, 1e-3))
 
 stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.MR, cov.noisy.MR.d)
 
+H = compute_H(X, stpca$WHat, stpca$muHat, stpca$sigSqHat, stpca$K)
+
+stpca$compute_gradient()
+
 #
 #stpcaObj = stpca(X, k, locations, cov.noisy.MR, cov.noisy.MR.d, beta0, trace=0, maxit.inner=1, maxit.outer=0)
 #
