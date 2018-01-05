@@ -15,7 +15,7 @@ test_that("The log likelihood is unaffected by rotating W", {
   for (i in 1:10) {
     R = svd(matrix(rnorm(k*k), ncol=k))$u # random orthonornal matrix
     ll2 = log_likelihood(stpca$X, stpca$WHat%*%R, stpca$muHat, stpca$sigSqHat)
-    expect_equal(lp1, lp2)
+    expect_equal(ll1, ll2)
   }
 })
 
