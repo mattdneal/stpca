@@ -20,7 +20,7 @@ StpcaModel <- setRefClass("StpcaModel",
     Vvar     = "list",
     logEvidences  = "numeric",
     logPosteriors = "numeric",
-    LogEvidenceD  = "numeric"
+    logEvidenceD  = "numeric"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0), locs=matrix(),
