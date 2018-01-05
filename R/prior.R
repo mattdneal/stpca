@@ -44,19 +44,19 @@ log_prior <- function(K, W) {
 #' @param W Loadings matrix
 #' @param beta hyperparameter values
 #' @param K Prior covariance matrix
-#' @param dK Prior covariance matrix derivatives
+#' @param KD Prior covariance matrix derivatives
 #' @return Partial derivatives of log prior
 #' @export
-log_prior_d <- function(W, beta, K, dK) {
+log_prior_d <- function(W, beta, K, KD) {
   deriv = numeric(length(beta))
   KinvW = solve(K, W)
 
   for (i in seq_along(beta)) {
-    term1 = ncol(W) * sum(diag( solve(K, dK[[i]])  ))
+    term1 = ncol(W) * sum(diag( solve(K, KD[[i]])  ))
 
-    term2 = -sum(diag( tcrossprod(KinvW)%*%dK[[i]] ))
+    term2 = -sum(diag( tcrossprod(KinvW)%*%KD[[i]] ))
     #term2b = -sum(vapply(1:ncol(W), function(k_) {
-    #  as.numeric(KinvW[,k_] %*% dK[[i]] %*% KinvW[,k_])
+    #  as.numeric(KinvW[,k_] %*% KD[[i]] %*% KinvW[,k_])
     #}, numeric(1)))
 
     deriv[i] = -0.5*(term1 + term2)
