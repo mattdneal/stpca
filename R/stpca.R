@@ -58,12 +58,26 @@ StpcaModel <- setRefClass("StpcaModel",
 
       return(.self)
     },
-    set_beta = function(beta, nIter=50) {
+    set_beta = function(betaNew, nIter=50) {
       'Documentations for the method goes here'
-      beta <<- beta
-      K    <<- covFn(locs, beta=beta)
-      fit()
-      return(.self)
+      if (!identical(betaNew, beta)) {
+        beta <<- betaNew
+        K    <<- Matrix()
+        try(K <<- covFn(locs, beta=betaNew), silent=TRUE) # As dppMatrix?
+
+        if (identical(K, Matrix()) || any(!is.finite(K@x))) {
+          # Enter this branch if K is problematic. If K could not be built,
+          # then it defaults to Matrix(). If K could be build but is bad,
+          # it will contain non-finite values.
+          Vmean         <<- matrix()
+          Vvar          <<- list()
+          logEvidences  <<- c(logEvidences, -Inf)
+          logPosteriors <<- c(logPosteriors, -Inf)
+        } else {
+          fit()
+        }
+      }
+      invisible(.self)
     },
     compute_gradient = function() {
       KD <<- covFnD(locs, beta=beta)
