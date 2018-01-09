@@ -5,7 +5,7 @@
 \title{Compute the partial derivatives of the log prior with respect to the
 hyperparameters with the value of beta provided.}
 \usage{
-log_prior_d(W, beta, K, dK)
+log_prior_d(W, beta, K, KD)
 }
 \arguments{
 \item{W}{Loadings matrix}
@@ -14,7 +14,7 @@ log_prior_d(W, beta, K, dK)
 
 \item{K}{Prior covariance matrix}
 
-\item{dK}{Prior covariance matrix derivatives}
+\item{KD}{Prior covariance matrix derivatives}
 }
 \value{
 Partial derivatives of log prior

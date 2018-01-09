@@ -5,7 +5,7 @@
 \title{Compute the derivative of the approximate log evidence with respect to the
 value of beta provided.}
 \usage{
-log_evidence_d(X, K, W, mu, sigSq, beta, dK)
+log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD)
 }
 \arguments{
 \item{X}{Data}

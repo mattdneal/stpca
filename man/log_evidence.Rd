@@ -9,7 +9,7 @@ priors over mu and sigSq. However, this unknown constant is always
 the same regardless of k and K, so this may be used to compute
 meaningful bayes factors between StPCA models.}
 \usage{
-log_evidence(X, K, W, mu, sigSq)
+log_evidence(X, K, WHat, muHat, sigSqHat)
 }
 \arguments{
 \item{X}{Data}
