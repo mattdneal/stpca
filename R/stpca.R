@@ -36,17 +36,11 @@ StpcaModel <- setRefClass("StpcaModel",
       covFnD <<- covFnD
 
       if (nrow(X)>0) {
-        ## Initialize theta (W, mu, sigSq) from PPCA
-        Xc <- scale(X, scale=FALSE) # Centered data: nxd
-        covar.svd <- svd(Xc/sqrt(n), nu=0, nv=k)
-        covar.eigval <- covar.svd$d^2
-
-        muHat    <<- attr(Xc, "scaled:center")
-        sigSqHat <<- sum(covar.eigval[-(1:k)])/(d-k)
-        WHat     <<- (covar.svd$v %*%
-                      diag(sqrt(covar.eigval[seq_len(k)] - sigSqHat)))
-
         set_beta(beta0)
+        thetaInit <- initialize_from_ppca(X, k)
+        muHat    <<- thetaInit$mu
+        sigSqHat <<- thetaInit$sigSq
+        WHat     <<- thetaInit$W
       }
 
       callSuper(...)
