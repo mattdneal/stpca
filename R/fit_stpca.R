@@ -15,6 +15,8 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
     # Maximization step for W
     W = EM.M.W(Xc, sigSq, E$Vmean, E$Vvar, K)
 
+    W = W %*% svd(W)$v
+
     # Second expectation step using updated W
     E = EM.E(Xc, W, sigSq)
 
@@ -74,12 +76,6 @@ EM.M.W <- function(Xc, sigSq, Vmean, Vvar, K) {
   C = A %*% t(solve(Vvarsum, t(xvsum)))
 
   W = sylSolve(A, B, C)
-
-  # Remove nonidentifiability VW^T = (VR)(WR)^T by setting R=I
-  # This also has the effect of making each column of W an eigenvector
-  # of cov[ X | \beta, \sigma^2 ]
-  W.svd = svd(W)
-  W     = W %*% W.svd$v
 
   return(W)
 }
