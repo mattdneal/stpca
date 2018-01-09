@@ -28,7 +28,8 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
   }
 
   # Assuming convergence, \sigma = \hat\sigma, so the evidence can be approximated
-  logEvidence = log_evidence(Xc, K, W, 0, sigSq)
+  H = compute_H(X, W, mu, sigSq, K)
+  logEvidence = log_evidence(Xc, K, W, 0, sigSq, H)
 
   # We now know the evidence to normalize the above log posterior values
   LPs = unNormedLPs - logEvidence
@@ -39,7 +40,8 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
     Vmean = E$Vmean,
     Vvar = E$Vvar,
     logEvidence = logEvidence,
-    logPosteriors = LPs
+    logPosteriors = LPs,
+    H = H
   ))
 }
 
