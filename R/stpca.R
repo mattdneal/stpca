@@ -25,8 +25,9 @@ StpcaModel <- setRefClass("StpcaModel",
     logEvidenceD  = "numeric"
   ),
   methods = list(
-    initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0), locs=matrix(),
-                          covFn=function() NULL, covFnD=function() NULL, ...) {
+    initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
+                          locs=matrix(), covFn=function() NULL,
+                          covFnD=function() NULL, nIter=50, ...) {
       X      <<- X
       n      <<- nrow(X)
       k      <<- as.integer(k)
@@ -36,11 +37,11 @@ StpcaModel <- setRefClass("StpcaModel",
       covFnD <<- covFnD
 
       if (nrow(X)>0) {
-        set_beta(beta0)
         thetaInit <- initialize_from_ppca(X, k)
         muHat    <<- thetaInit$mu
         sigSqHat <<- thetaInit$sigSq
         WHat     <<- thetaInit$W
+        set_beta(beta0, nIter)
       }
 
       callSuper(...)
