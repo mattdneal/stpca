@@ -7,11 +7,11 @@
 #'
 #' @param X Data
 #' @param K Prior covariance matrix
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
+#' @param WHat Loadings matrix
+#' @param muHat
+#' @param sigSqHat
 #' @return Approximate log evidence
-log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
+log_evidence <- function(X, K, WHat, muHat, sigSqHat, H) {
   if (!any(is.finite(diag(K)))) {
     return(-Inf)
   }
@@ -20,20 +20,19 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
   d = ncol(X)
   k = ncol(WHat)
 
-  # If the inversion cannot be done, logZ defaults to -Inf
-  logZ = -Inf
-  try({
-    H = compute_H(X, WHat, muHat, sigSqHat, K)
-    logDetH = sum(vapply(H, function(Hblock) {
-       as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
-    }, numeric(1)))
+  logPrior = log_prior(K, WHat)
 
-    # Laplace-approximated log evidence
-    logZ = (log_prior(K, WHat) +
-            log_likelihood(X, WHat, muHat, sigSqHat) +
-            (0.5*(d*k+d+1))*log(2*pi) -
-            0.5*logDetH)
-  }, silent=TRUE)
+  logLik = log_likelihood(X, WHat, muHat, sigSqHat)
+
+  logDetH = sum(vapply(H, function(Hblock) {
+     as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
+  }, numeric(1)))
+
+  # Laplace-approximated log evidence
+  logZ = (logPrior +
+          logLik +
+          (0.5*(d*k+d+1))*log(2*pi) -
+          0.5*logDetH)
   return(logZ)
 }
 
@@ -42,20 +41,20 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat) {
 #'
 #' @param X Data
 #' @param K Prior covariance matrix
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
+#' @param WHat Loadings matrix
+#' @param muHat
+#' @param sigSqHat
 #' @param beta
 #' @param KD
 #' @return Partial derivatives of approximate log evidence
-log_evidence_d <- function(X, K, WHat, muHat, sigSqHat, beta, KD) {
+log_evidence_d <- function(X, K, WHat, muHat, sigSqHat, beta, KD, H) {
+  #HW = H[grep("^w", names(H))]
+
   success=FALSE
   try({
     HW = compute_H_W(X, WHat, muHat, sigSqHat, K)
     success=TRUE
   })
-
-  if(!success) return(lapply(seq_along(beta), function(b) 0))
 
   logPriorD = log_prior_d(WHat, beta, K, KD)
   logDetHD  = log_det_H_d(K, KD, HW)
