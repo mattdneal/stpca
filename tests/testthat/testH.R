@@ -1,25 +1,25 @@
 context("Numerical vs analytic blocks of H")
 
 test_that("Analytic H_{\\sigma^2} is equal to numeric H_{\\sigma^2}", {
-  HsigSq.analytic = H$sigSq
-  HsigSq.numeric = Matrix(numDeriv::hessian(function(sigSq_) {
+  HsigSq.analytic = unname(as.matrix(stpca$H$sigSq))
+  HsigSq.numeric = numDeriv::hessian(function(sigSq_) {
     -log_likelihood(X, stpca$WHat, stpca$muHat, sigSq_)
-  }, x=stpca$sigSqHat))
+  }, x=stpca$sigSqHat)
   expect_equal(HsigSq.analytic, HsigSq.numeric)
 })
 
 test_that("Analytic H_{\\mu} is equal to numeric H_{\\mu}", {
-  Hmu.analytic = H$mu
-  Hmu.numeric = Matrix(numDeriv::hessian(function(mu_) {
+  Hmu.analytic = unname(as.matrix(stpca$H$mu))
+  Hmu.numeric = numDeriv::hessian(function(mu_) {
     -(log_likelihood(stpca$X, stpca$WHat, mu_, stpca$sigSqHat) +
       log_prior(stpca$K, stpca$WHat))
-  }, x=stpca$muHat))
+  }, x=stpca$muHat)
   expect_equal(Hmu.analytic, Hmu.numeric, tolerance=1e-6)
 })
 
 test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
   for (i in 1:k) {
-    Hwi.analytic = H[[paste("w", i, sep='')]]
+    Hwi.analytic = unname(as.matrix(stpca$H[[paste("w", i, sep='')]]))
     Hwi.numeric = numDeriv::hessian(function(wi) {
       W_ = stpca$WHat
       W_[,i] = wi
@@ -34,7 +34,7 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
 
 test_that("Building H triggers an informative error if K cannot be inverted", {
   expect_error({
-    K_ = cov.SE(locs, beta=log(c(1, 10000)))
+    K_ = cov.SE(locs, beta=log(c(1, 100000)))
     compute_H(X, stpca$WHat, stpca$muHat, stpca$sigSqHat, K_)
   }, "Could not invert K")
 })
