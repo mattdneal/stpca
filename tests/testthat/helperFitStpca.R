@@ -7,7 +7,7 @@ library(numDeriv)
 
 n     = 15
 k     = 4
-dim   = c(5, 5)
+dim   = c(6, 6)
 d     = prod(dim)
 beta  = log(c(2, 0.2, 1e-4))
 k_se  = functional::Curry(cov.noisy.SE, beta=beta)
@@ -17,25 +17,17 @@ dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
 locs = dataset$grid
 X = as.matrix(dataset$X)
 
-#beta0 = c(cov.SE.beta0(X, locs, k), log(1e-3))
-beta0 = log(c(1, 0.6, 0.6, 1e-3))
+beta0 = c(cov.SE.beta0(X, locs, k), log(1e-3))
+constr = list(
+  ineqA = rbind(diag(3), -diag(3)),
+  ineqB = c(-log(c(0.01, 0.01, 1e-5)),
+            log(c(100*crossprod(X[1,]),
+                             5, 10)))
+)
 
-stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.MR, cov.noisy.MR.d)
+stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, nIter=50)
 
-H = compute_H(X, stpca$WHat, stpca$muHat, stpca$sigSqHat, stpca$K)
+#beta0 = log(c(1, 0.6, 0.6, 1e-3))
+#stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.MR, cov.noisy.MR.d, nIter=50)
 
-stpca$compute_gradient()
-
-#
-#stpcaObj = stpca(X, k, locations, cov.noisy.MR, cov.noisy.MR.d, beta0, trace=0, maxit.inner=1, maxit.outer=0)
-#
-#H = stpca.H(X, stpcaObj$W, stpcaObj$mu, stpcaObj$sigSq, stpcaObj$K)
-#
-#maxit.inner=10
-#maxit.outer=1
-#
-#stpcaObj.it = stpca.iterate(stpcaObj, maxit.inner=maxit.inner,
-#                                      maxit.outer=maxit.outer)
-#
-#stpcaObj.it.t = stpca.iterate.theta(stpcaObj.it, maxit.inner=50)
-#stpcaObj.it.b = stpca.iterate.beta(stpcaObj.it.t)
+#stpca$tune_beta(constraints=constr)
