@@ -1,5 +1,7 @@
 #' Structured PCA Model
 #'
+#' @import Matrix
+#' @import maxLik
 #' @export
 StpcaModel <- setRefClass("StpcaModel",
   fields = list(
