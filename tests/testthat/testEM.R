@@ -22,11 +22,13 @@ test_that("The expectation function matches analytic solution", {
 context("EM: maximisation in sigma^2")
 
 test_that("sigma^2 maximisation stage increases complete log posterior to local max", {
+  set.seed(1)
   Xc     = sweep(stpca$X, 2, stpca$muHat)
-  E      = EM.E(Xc, stpca$WHat, stpca$sigSqHat)
+  sigSq1 = exp(rnorm(1))
+  E      = EM.E(Xc, stpca$WHat, sigSq1)
   sigSq2 = EM.M.sigSq(Xc, stpca$WHat, E$Vmean, E$Vvar)
 
-  clp1   = complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0, sigSq,  stpca$K)
+  clp1   = complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0, sigSq1,  stpca$K)
   clp2   = complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0, sigSq2, stpca$K)
 
   expect_gt(clp2, clp1)
@@ -49,7 +51,7 @@ test_that("sigma^2 maximisation stage increases complete log posterior to local 
 test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local max", {
   Xc = sweep(stpca$X, 2, stpca$muHat)
   W  = stpca$WHat
-  sigSq = stpca$sigSqHat
+  sigSq = exp(rnorm(1))
 
   for (i in 1:100) {
     E     = EM.E(Xc, W, sigSq)
@@ -74,37 +76,30 @@ test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local
 context("EM: maximisation in W")
 
 test_that("W maximisation stage increases expected complete log posterior to zero gradient point", {
-  Xc = sweep(stpca$X, 2, stpca$muHat)
-
-  E    = EM.E(Xc, stpca$WHat, stpca$sigSqHat)
-
-  clp1 = complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0,
+  Xc   = sweep(stpca$X, 2, stpca$muHat)
+  W1   = initialize_from_ppca(Xc, k)$W
+  E    = EM.E(Xc, W1, stpca$sigSqHat)
+  clp1 = complete_log_posterior(Xc, E$Vmean, E$Vvar, W1, 0,
                                 stpca$sigSqHat, stpca$K)
 
-  WHatNew = EM.M.W(Xc, stpca$sigSqHat, E$Vmean, E$Vvar, stpca$K)
-
-  clp2 = complete_log_posterior(Xc, E$Vmean, E$Vvar, WHatNew, 0,
+  W2   = EM.M.W(Xc, stpca$sigSqHat, E$Vmean, E$Vvar, stpca$K)
+  clp2 = complete_log_posterior(Xc, E$Vmean, E$Vvar, W2, 0,
                                 stpca$sigSqHat, stpca$K)
 
   expect_gte(clp2, clp1)
 
-  #G0 = numDeriv::grad(function(W_) {
-  #  complete_log_posterior(Xc, E$Vmean, E$Vvar, W_, 0, stpca$sigSqHat, stpca$K)
-  #}, stpca$WHat)
-
   clpGrad = numDeriv::grad(function(W_) {
     complete_log_posterior(Xc, E$Vmean, E$Vvar, W_, 0, stpca$sigSqHat, stpca$K)
-  }, WHatNew)
+  }, W2)
 
   # Zero gradient
-  expect_equal(clpGrad, rep(0, length(stpca$WHat)), tol=1e-5)
+  expect_equal(clpGrad, rep(0, length(W2)), tol=1e-6)
 })
 
-test_that("Iterating Expectation and W maximisation finds zero gradient point", {
-  require(numDeriv)
+test_that("Iterating Expectation and W maximisation finds zero gradient point in posterior", {
   Xc = sweep(stpca$X, 2, stpca$muHat)
 
-  W = stpca$WHat
+  W = initialize_from_ppca(X, k)$W
   for (i in 1:300) {
     E = EM.E(Xc, W, stpca$sigSqHat)
     W = EM.M.W(Xc, stpca$sigSqHat, E$Vmean, E$Vvar, stpca$K)
@@ -120,9 +115,7 @@ test_that("Iterating Expectation and W maximisation finds zero gradient point", 
 
 context("EM: Full EM procedure")
 
-test_that("fit_stpca finds the MAP theta", {
-  set.seed(1)
-
+test_that("stpca$fit() finds the MAP theta", {
   stpca2 = stpca$copy()
   stpca2$fit(300)
 
