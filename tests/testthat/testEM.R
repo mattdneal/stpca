@@ -33,19 +33,19 @@ test_that("sigma^2 maximisation stage increases complete log posterior to local 
 
   expect_gt(clp2, clp1)
 
-  G = numDeriv::grad(function(s_) {
+  clpGrad = numDeriv::grad(function(s_) {
     complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0, s_, stpca$K)
   }, sigSq2)
 
-  H = numDeriv::hessian(function(s_) {
+  clpHess = numDeriv::hessian(function(s_) {
     complete_log_posterior(Xc, E$Vmean, E$Vvar, stpca$WHat, 0, s_, stpca$K)
   }, sigSq2)
 
   # Zero gradient
-  expect_equal(G, 0)
+  expect_equal(clpGrad, 0)
 
   # 1x1 hessian is negative definite => local maximum
-  expect_lt(H, 0)
+  expect_lt(clpHess, 0)
 })
 
 test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local max", {
@@ -58,19 +58,19 @@ test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local
     sigSq = EM.M.sigSq(Xc, W, E$Vmean, E$Vvar)
   }
 
-  G = numDeriv::grad(function(sigSq_) {
+  llGrad = numDeriv::grad(function(sigSq_) {
     log_likelihood(Xc, W, 0, sigSq_)
   }, sigSq)[1]
 
-  H = numDeriv::hessian(function(sigSq_) {
+  llHess = numDeriv::hessian(function(sigSq_) {
     log_likelihood(Xc, W, 0, sigSq_)
   }, sigSq)[1]
 
   # Zero gradient
-  expect_equal(G, 0)
+  expect_equal(llGrad, 0)
 
   # 1x1 hessian is negative definite => local maximum
-  expect_lt(H, 0)
+  expect_lt(llHess, 0)
 })
 
 context("EM: maximisation in W")
@@ -105,12 +105,12 @@ test_that("Iterating Expectation and W maximisation finds zero gradient point in
     W = EM.M.W(Xc, stpca$sigSqHat, E$Vmean, E$Vvar, stpca$K)
   }
 
-  G = numDeriv::grad(function(W_) {
+  lpGrad = numDeriv::grad(function(W_) {
     log_likelihood(Xc, W_, 0, stpca$sigSqHat) +
     log_prior(stpca$K, W_)
   }, W)
 
-  expect_equal(G, rep(0, length(W)), tolerance=1e-6)
+  expect_equal(lpGrad, rep(0, length(W)), tolerance=1e-6)
 })
 
 context("EM: Full EM procedure")
@@ -130,7 +130,7 @@ test_that("stpca$fit() finds the MAP theta", {
   thetaHat = unlist(params)
   lpMax = veclp(thetaHat)
 
-  G = grad(veclp, thetaHat)
+  lpGrad = grad(veclp, thetaHat)
 
-  expect_equal(G, rep(0, length(thetaHat)), tol=1e-7)
+  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-7)
 })
