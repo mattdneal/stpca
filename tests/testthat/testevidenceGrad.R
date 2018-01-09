@@ -15,15 +15,15 @@ for (covfun in 1:2) {
   stpca$compute_gradient()
 
   test_that("The gradient of the log prior wrt beta matches numerical approximation", {
-    grad.analytic = log_prior_d(stpca$WHat, stpca$beta,
-                                stpca$K, stpca$KD)
+    grad.analytic = unname(log_prior_d(stpca$WHat, stpca$beta,
+                                       stpca$K, stpca$KD))
 
     grad.numeric = grad(function(beta_) {
       K_ = stpca$covFn(locs, beta=beta_)
       return(log_prior(K_, stpca$WHat))
     }, x=stpca$beta)
 
-    expect_equivalent(grad.analytic, grad.numeric)
+    expect_equal(grad.analytic, grad.numeric, tol=1e-6)
   })
 
   test_that("The gradient of log(det(H)) matches numerical approximation", {
@@ -79,6 +79,6 @@ for (covfun in 1:2) {
       KD
     ))
 
-    expect_equivalent(grad.analytic, grad.numeric)
+    expect_equal(grad.analytic, grad.numeric, tol=1e-6)
   })
 }
