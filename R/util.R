@@ -3,6 +3,8 @@
 distanceMatrix <- function(X, X2=NA, max.dist=Inf) {
   stopifnot(!(all(is.na(nrow(X)))))
 
+  stopifnot(all(is.finite(X)))
+
   symmetric=FALSE
   if (missing(X2) || all(is.na(X2))) {
     symmetric=TRUE
