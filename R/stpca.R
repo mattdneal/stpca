@@ -20,9 +20,10 @@ StpcaModel <- setRefClass("StpcaModel",
     sigSqHat = "numeric",
     Vmean    = "matrix",
     Vvar     = "list",
-    logEvidences  = "numeric",
+    logEvidence   = "numeric",
     logPosteriors = "numeric",
-    logEvidenceD  = "numeric"
+    logEvidenceD  = "numeric",
+    H        = "list"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
@@ -47,16 +48,26 @@ StpcaModel <- setRefClass("StpcaModel",
       callSuper(...)
     },
     fit = function(nIter=50) {
-      vals <- fit_stpca(X, WHat, muHat, sigSqHat, K, nIter)
+      vals <- NULL
+      try(vals <- fit_stpca(X, WHat, muHat, sigSqHat, K, nIter))
 
-      WHat          <<- vals$WHat
-      sigSqHat      <<- vals$sigSqHat
-      Vmean         <<- vals$Vmean
-      Vvar          <<- vals$Vvar
-      logEvidences  <<- c(logEvidences,  vals$logEvidence)
-      logPosteriors <<- c(logPosteriors, vals$logPosteriors)
+      if (is.null(vals)) {
+        Vmean         <<- matrix()
+        Vvar          <<- list()
+        logEvidence   <<- -Inf
+        logPosteriors <<- -Inf
+        H             <<- list()
+      } else {
+        WHat          <<- vals$WHat
+        sigSqHat      <<- vals$sigSqHat
+        Vmean         <<- vals$Vmean
+        Vvar          <<- vals$Vvar
+        logEvidence   <<- vals$logEvidence
+        logPosteriors <<- vals$logPosteriors
+        H             <<- vals$H
+      }
 
-      return(.self)
+      invisible(.self)
     },
     set_beta = function(betaNew, nIter=50) {
       'Documentations for the method goes here'
@@ -71,8 +82,8 @@ StpcaModel <- setRefClass("StpcaModel",
           # it will contain non-finite values.
           Vmean         <<- matrix()
           Vvar          <<- list()
-          logEvidences  <<- c(logEvidences, -Inf)
-          logPosteriors <<- c(logPosteriors, -Inf)
+          logEvidence   <<- -Inf
+          logPosteriors <<- -Inf
         } else {
           fit()
         }
@@ -80,13 +91,25 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     compute_gradient = function() {
-      KD <<- covFnD(locs, beta=beta)
-      logEvidenceD <<- log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD)
-      return(.self)
+      KD           <<- covFnD(locs, beta=beta)
+      logEvidenceD <<- log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD, H)
+      invisible(.self)
     },
-    tune_beta = function(nIter) {
-      stop("Implement me!")
-      return(.self)
+    tune_beta = function(...) {
+      S = .self$copy()
+      logLik = function(beta_) {
+        print(beta_)
+        S$set_beta(beta_)$logEvidence
+      }
+
+      logLikGrad = function(beta_) {
+        S$set_beta(beta_)$compute_gradient()$logEvidenceD
+      }
+
+      optObj = maxBFGS(logLik, logLikGrad, start=beta, ...)
+      set_beta(optObj$estimate)
+
+      invisible(.self)
     }
   )
 )
