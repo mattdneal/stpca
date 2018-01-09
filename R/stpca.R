@@ -31,7 +31,6 @@ StpcaModel <- setRefClass("StpcaModel",
       n      <<- nrow(X)
       k      <<- as.integer(k)
       d      <<- ncol(X)
-      beta   <<- beta0
       locs   <<- locs
       covFn  <<- covFn
       covFnD <<- covFnD
