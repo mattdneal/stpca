@@ -1,9 +1,9 @@
 #' Compute all the blocks of H.
 #'
 #' @param X Data
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
+#' @param WHat Loadings matrix
+#' @param muHat
+#' @param sigSqHat
 #' @param K Prior covariance matrix
 #' @return H
 #' @import Matrix
@@ -31,16 +31,16 @@
 #'   -log_posterior(X, K, W, mu_, sigSq)
 #' }, x=mu))
 #' stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
-compute_H <- function(X, W, mu, sigSq, K) {
+compute_H <- function(X, WHat, muHat, sigSqHat, K) {
   n = nrow(X)
   d = ncol(X)
-  k = ncol(W)
-  Xc = sweep(X, 2, mu)
+  k = ncol(WHat)
+  Xc = sweep(X, 2, muHat)
 
-  R = Matrix::chol(crossprod(W) + sigSq*diag(k))
-  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+  R = Matrix::chol(crossprod(WHat) + sigSqHat*diag(k))
+  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(WHat)))))/sigSqHat
 
-  HW  = compute_H_W(X, W, mu, sigSq, K)
+  HW  = compute_H_W(X, WHat, muHat, sigSqHat, K)
 
   Hmu = n*Cinv
 
@@ -57,9 +57,9 @@ compute_H <- function(X, W, mu, sigSq, K) {
 #' Compute all the w_i blocks of H
 #'
 #' @param X Data
-#' @param W Loadings matrix
-#' @param mu
-#' @param sigSq
+#' @param WHat Loadings matrix
+#' @param muHat
+#' @param sigSqHat
 #' @param K Prior covariance matrix
 #' @return H_{w_i}
 #' @import Matrix
@@ -82,17 +82,17 @@ compute_H <- function(X, W, mu, sigSq, K) {
 #' }, x=W[,1]))
 #'
 #' stopifnot(all.equal(Hw1.analytic, Hw1.numeric))
-compute_H_W <- function(X, W, mu, sigSq, K) {
+compute_H_W <- function(X, WHat, muHat, sigSqHat, K) {
   n = nrow(X)
   d = ncol(X)
-  k = ncol(W)
-  Xc = Matrix(sweep(X, 2, mu))
+  k = ncol(WHat)
+  Xc = Matrix(sweep(X, 2, muHat))
 
-  M = Matrix(crossprod(W) + sigSq*diag(k))
+  M = Matrix(crossprod(WHat) + sigSqHat*diag(k))
   R = Matrix::chol(M)
-  Cinv = (Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(W)))))/sigSq
+  Cinv = (Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(WHat)))))/sigSqHat
 
-  MinvWt = solve(M, t(W))
+  MinvWt = solve(M, t(WHat))
 
   invSuccess=FALSE
   try({
@@ -104,7 +104,7 @@ compute_H_W <- function(X, W, mu, sigSq, K) {
 
   HW = list()
   for (k_ in 1:k) {
-    wi = Matrix(W[,k_,drop=F])
+    wi = Matrix(WHat[,k_,drop=F])
 
     wtCinvw = crossprod(wi, Cinv%*%wi)
     term2 = Cinv*as.numeric(crossprod(Xc%*%(Cinv%*%wi))
@@ -116,14 +116,14 @@ compute_H_W <- function(X, W, mu, sigSq, K) {
     term3C = -n*tcrossprod(wi)
     ABCsum = term3A + term3B + term3C
 
-    AW = ABCsum %*% W
-    WtAW = crossprod(W, AW)
+    AW = ABCsum %*% WHat
+    WtAW = crossprod(WHat, AW)
     AWMinvWt = AW%*%MinvWt
     term3 = (
       ABCsum -
       2*symmpart(AWMinvWt) +
       forceSymmetric(crossprod(MinvWt, WtAW) %*% MinvWt)
-    )/(sigSq*sigSq)
+    )/(sigSqHat*sigSqHat)
 
     Hwk = Kinv + term2 + term3
     HW[[k_]] = Hwk
