@@ -5,14 +5,14 @@
 \title{Compute the derivative of the approximate log evidence with respect to the
 value of beta provided.}
 \usage{
-log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD)
+log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD, H)
 }
 \arguments{
 \item{X}{Data}
 
 \item{K}{Prior covariance matrix}
 
-\item{W}{Loadings matrix}
+\item{WHat}{Loadings matrix}
 }
 \value{
 Partial derivatives of approximate log evidence

@@ -3,14 +3,14 @@
 \name{complete_log_posterior}
 \alias{complete_log_posterior}
 \title{Compute a value proportional to the  expected complete log posterior:
-  E[ log p(\theta | X, V, \beta) | V ]
-\propto
-  E[ log p(X | V, \theta) | V ] + log p(\theta | \beta) + E[ log p(V) | V ]}
+  E[ log p(\\theta | X, V, \\beta) | V ]
+\\propto
+  E[ log p(X | V, \\theta) | V ] + log p(\\theta | \\beta) + E[ log p(V) | V ]}
 \usage{
 complete_log_posterior(X, V, Vvar, W, mu, sigSq, K)
 }
 \description{
 This is "propertional to" because we do not compute the normalising
 constant E[ log p(X, V) | V ]. This does not matter since this function is
-used to check that each EM M-step maximizes this quantity w.r.t \theta.
+used to check that each EM M-step maximizes this quantity w.r.t \\theta.
 }

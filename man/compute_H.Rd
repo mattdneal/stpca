@@ -4,12 +4,12 @@
 \alias{compute_H}
 \title{Compute all the blocks of H.}
 \usage{
-compute_H(X, W, mu, sigSq, K)
+compute_H(X, WHat, muHat, sigSqHat, K)
 }
 \arguments{
 \item{X}{Data}
 
-\item{W}{Loadings matrix}
+\item{WHat}{Loadings matrix}
 
 \item{K}{Prior covariance matrix}
 }

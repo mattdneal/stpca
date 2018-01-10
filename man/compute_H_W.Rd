@@ -4,12 +4,12 @@
 \alias{compute_H_W}
 \title{Compute all the w_i blocks of H}
 \usage{
-compute_H_W(X, W, mu, sigSq, K)
+compute_H_W(X, WHat, muHat, sigSqHat, K)
 }
 \arguments{
 \item{X}{Data}
 
-\item{W}{Loadings matrix}
+\item{WHat}{Loadings matrix}
 
 \item{K}{Prior covariance matrix}
 }
