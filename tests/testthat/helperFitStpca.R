@@ -7,7 +7,7 @@ library(numDeriv)
 
 n     = 15
 k     = 4
-dim   = c(6, 6)
+dim   = c(5, 5)
 d     = prod(dim)
 beta  = log(c(2, 0.2, 1e-4))
 k_se  = functional::Curry(cov.noisy.SE, beta=beta)
@@ -30,4 +30,6 @@ constr = list(
             log(c(100*crossprod(X[1,]),
                              5, 10)))
 )
-stpcaTuned = stpca$copy()$tune_beta(constraints=constr)
+stpcaTuned = stpca$copy()$tune_beta(constraints=constr, control=list(
+  reltol=1000*sqrt(.Machine$double.eps)
+))
