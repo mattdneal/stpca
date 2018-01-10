@@ -16,5 +16,5 @@ test_that("set_beta() plays nice with extreme hyperparameter values", {
 })
 
 test_that("tune_beta() method optimises beta", {
-  expect_gt(stpcaTuned$logEvidence)
+  expect_gt(stpcaTuned$logEvidence, stpca$logEvidence)
 })
