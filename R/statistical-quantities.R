@@ -43,13 +43,13 @@ log_likelihood <- function(X, W, mu, sigSq) {
 }
 
 #' Compute a value proportional to the  expected complete log posterior:
-#'   E[ log p(\theta | X, V, \beta) | V ]
-#' \propto
-#'   E[ log p(X | V, \theta) | V ] + log p(\theta | \beta) + E[ log p(V) | V ]
+#'   E[ log p(\\theta | X, V, \\beta) | V ]
+#' \\propto
+#'   E[ log p(X | V, \\theta) | V ] + log p(\\theta | \\beta) + E[ log p(V) | V ]
 #'
 #' This is "propertional to" because we do not compute the normalising
 #' constant E[ log p(X, V) | V ]. This does not matter since this function is
-#' used to check that each EM M-step maximizes this quantity w.r.t \theta.
+#' used to check that each EM M-step maximizes this quantity w.r.t \\theta.
 #'
 #' @export
 complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
