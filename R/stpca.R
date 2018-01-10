@@ -23,7 +23,8 @@ StpcaModel <- setRefClass("StpcaModel",
     logEvidence   = "numeric",
     logPosteriors = "numeric",
     logEvidenceD  = "numeric",
-    H        = "list"
+    H        = "list",
+    maxim    = "maxim"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
@@ -36,6 +37,11 @@ StpcaModel <- setRefClass("StpcaModel",
       locs   <<- locs
       covFn  <<- covFn
       covFnD <<- covFnD
+
+      # Initialize the 'maxim' slot with an empty maxim object.
+      emptyMaxim <- list()
+      class(emptyMaxim) <- "maxim"
+      maxim  <<- emptyMaxim
 
       if (nrow(X)>0) {
         thetaInit <- initialize_from_ppca(X, k)
@@ -96,18 +102,16 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     tune_beta = function(...) {
-      S = .self$copy()
       logLik = function(beta_) {
-        print(beta_)
-        S$set_beta(beta_)$logEvidence
+        set_beta(beta_)$logEvidence
       }
 
       logLikGrad = function(beta_) {
-        S$set_beta(beta_)$compute_gradient()$logEvidenceD
+        set_beta(beta_)$compute_gradient()$logEvidenceD
       }
 
-      optObj = maxBFGS(logLik, logLikGrad, start=beta, ...)
-      set_beta(optObj$estimate)
+      maxim <<- maxBFGS(logLik, logLikGrad, start=beta, ...)
+      set_beta(maxim$estimate)
 
       invisible(.self)
     }
