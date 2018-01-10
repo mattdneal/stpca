@@ -32,7 +32,11 @@ distanceMatrix <- function(X, X2=NA, max.dist=Inf) {
     # Use fields.rdist.near to find all distances < max.dist, stored as triples
     continue = FALSE
     while (!continue) {
-      Dtriples = try(fields.rdist.near(X, X2, delta=max.dist, max.points = max.points), silent=TRUE)
+      capture.output(
+        Dtriples <- try(
+          fields.rdist.near(X, X2, delta=max.dist, max.points = max.points)
+        , silent=TRUE)
+      )
       if (inherits(Dtriples, "try-error")) {
         if (grepl("Ran out of space, increase max.points", gettext(Dtriples), ignore.case=TRUE)) {
           max.points = max.points * 2
