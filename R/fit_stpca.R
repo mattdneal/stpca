@@ -15,7 +15,9 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
     # Maximization step for W
     W = EM.M.W(Xc, sigSq, E$Vmean, E$Vvar, K)
 
+    # Align W with PCs & fix sign
     W = W %*% svd(W)$v
+    W = W %*% diag(sign(W[1,]))
 
     # Second expectation step using updated W
     E = EM.E(Xc, W, sigSq)
