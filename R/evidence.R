@@ -48,13 +48,7 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat, H) {
 #' @param KD
 #' @return Partial derivatives of approximate log evidence
 log_evidence_d <- function(X, K, WHat, muHat, sigSqHat, beta, KD, H) {
-  #HW = H[grep("^w", names(H))]
-
-  success=FALSE
-  try({
-    HW = compute_H_W(X, WHat, muHat, sigSqHat, K)
-    success=TRUE
-  })
+  HW = H[grep("^w", names(H))]
 
   logPriorD = log_prior_d(WHat, beta, K, KD)
   logDetHD  = log_det_H_d(K, KD, HW)
