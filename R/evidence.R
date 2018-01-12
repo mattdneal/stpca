@@ -20,17 +20,17 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat, H) {
   d = ncol(X)
   k = ncol(WHat)
 
-  logPrior = log_prior(K, WHat)
-
   logLik = log_likelihood(X, WHat, muHat, sigSqHat)
+
+  logPrior = log_prior(K, WHat)
 
   logDetH = sum(vapply(H, function(Hblock) {
      as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)
   }, numeric(1)))
 
   # Laplace-approximated log evidence
-  logZ = (logPrior +
-          logLik +
+  logZ = (logLik +
+          logPrior +
           (0.5*(d*k+d+1))*log(2*pi) -
           0.5*logDetH)
   return(logZ)
