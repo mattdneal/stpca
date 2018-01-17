@@ -5,6 +5,7 @@
 #' @param nIter number of EM iterations
 #' @return An \code{stpca} object.
 fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
+  mu = colMeans(X)
   Xc = sweep(X, 2, mu)
 
   unNormedLPs = numeric(nIter) # un-normalised log posteriors
@@ -38,6 +39,7 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
 
   return(list(
     WHat = W,
+    muHat = mu,
     sigSqHat = sigSq,
     Vmean = E$Vmean,
     Vvar = E$Vvar,
