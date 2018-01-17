@@ -16,7 +16,6 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat, H) {
     return(-Inf)
   }
 
-  n = nrow(X)
   d = ncol(X)
   k = ncol(WHat)
 
