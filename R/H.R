@@ -38,7 +38,7 @@ compute_H <- function(X, WHat, muHat, sigSqHat, K) {
   Xc = sweep(X, 2, muHat)
 
   R = Matrix::chol(crossprod(WHat) + sigSqHat*diag(k))
-  Cinv = Matrix(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(WHat)))))/sigSqHat
+  Cinv = as(Diagonal(d) - Matrix(crossprod(forwardsolve(t(R), t(WHat)))), "dspMatrix")/sigSqHat
 
   HW  = compute_H_W(X, WHat, muHat, sigSqHat, K)
 
@@ -96,7 +96,7 @@ compute_H_W <- function(X, WHat, muHat, sigSqHat, K) {
 
   invSuccess=FALSE
   try({
-    Kinv = solve(K, sparse=FALSE)
+    Kinv = solve(K, sparse=FALSE) # TODO: Remove sparse=False? Why is it here? :s
     invSuccess=TRUE
   }, silent=TRUE)
   if (!invSuccess) { stop("Could not invert K") }
@@ -104,7 +104,7 @@ compute_H_W <- function(X, WHat, muHat, sigSqHat, K) {
 
   HW = list()
   for (k_ in 1:k) {
-    wi = Matrix(WHat[,k_,drop=F])
+    wi = Matrix(WHat[,k_,drop=FALSE])
 
     wtCinvw = crossprod(wi, Cinv%*%wi)
     term2 = Cinv*as.numeric(crossprod(Xc%*%(Cinv%*%wi))
@@ -140,6 +140,7 @@ compute_H_W <- function(X, WHat, muHat, sigSqHat, K) {
 #' @param HW list of blocks H_{w_i}
 #' @return Partial derivatives of log|H|
 log_det_H_d <- function(K, KD, HW) {
+  HW = HW[grep("^w", names(HW))]
   logDetH.d = numeric(length(KD))
   for (i in seq_along(KD)) {
     logDetH.d[i] = -sum(vapply(HW, function(Hw) {
