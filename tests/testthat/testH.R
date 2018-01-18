@@ -27,7 +27,7 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
         log_prior(stpca$K, W_))
     }, x=stpca$WHat[,i])
 
-    expect_equal(as.matrix(Hwi.analytic), Hwi.numeric, tolerance=1e-6,
+    expect_equal(as.matrix(Hwi.analytic), Hwi.numeric, tolerance=1e-5,
                  check.attributes=FALSE)
   }
 })

@@ -42,7 +42,7 @@ test_that("sigma^2 maximisation stage increases complete log posterior to local 
   }, sigSq2)
 
   # Zero gradient
-  expect_equal(clpGrad, 0)
+  expect_equal(clpGrad, 0, tol=1e-7)
 
   # 1x1 hessian is negative definite => local maximum
   expect_lt(clpHess, 0)
@@ -115,15 +115,16 @@ test_that("Iterating Expectation and W maximisation finds zero gradient point in
 
 context("EM: Full EM procedure")
 
-test_that("stpca$fit() finds the MAP theta", {
-  stpca2 = stpca$copy()
-  stpca2$fit(300)
-
-  params = list(W=stpca2$WHat, sigSq=stpca2$sigSqHat, mu=stpca2$muHat)
+test_that("stpca$update_theta() finds the MAP theta", {
+  params = list(
+    W     = stpcaUpTheta$WHat,
+    sigSq = stpcaUpTheta$sigSqHat,
+    mu    = stpcaUpTheta$muHat
+  )
   veclp = function(theta) {
     L = relist(theta, params)
-    lp = log_likelihood(stpca2$X, L$W, L$mu, L$sigSq) +
-         log_prior(stpca2$K, L$W)
+    lp = log_likelihood(X, L$W, L$mu, L$sigSq) +
+         log_prior(stpcaUpTheta$K, L$W)
     return(lp)
   }
 
@@ -132,5 +133,5 @@ test_that("stpca$fit() finds the MAP theta", {
 
   lpGrad = grad(veclp, thetaHat)
 
-  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-7)
+  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-6)
 })

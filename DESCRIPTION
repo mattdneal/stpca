@@ -12,12 +12,12 @@ Depends: R (>= 3.1.0)
 License: MIT + file LICENSE
 LazyData: true
 Collate: 
+    'EM.R'
     'H.R'
     'synthesize-data.R'
     'util.R'
     'covariance-functions.R'
     'evidence.R'
-    'fit_stpca.R'
     'ppca-initialization.R'
     'prior.R'
     'statistical-quantities.R'

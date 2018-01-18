@@ -11,6 +11,6 @@ Structured PCA Model
 \section{Methods}{
 
 \describe{
-\item{\code{set_beta(betaNew, nIter = 50)}}{Documentations for the method goes here}
+\item{\code{update_beta(...)}}{Method docs go here}
 }}
 

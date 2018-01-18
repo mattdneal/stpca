@@ -1,15 +1,14 @@
 #' Update theta to be the maximum-a-posteriori value using Expectation
 #' Maximisation.
-#'
-#' @param stpcaObj an stpca object.
-#' @param nIter number of EM iterations
-#' @return An \code{stpca} object.
-fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
+theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1e-5) {
+  stopifnot(bftol > 0)
+  stopifnot(maxit > 0)
+
   mu = colMeans(X)
   Xc = sweep(X, 2, mu)
 
-  unNormedLPs = numeric(nIter) # un-normalised log posteriors
-  for (iter in seq_len(nIter)) { # TODO: Iterate until zero gradient
+  unNormedLPs = numeric(maxit) # un-normalised log posteriors
+  for (iter in seq_len(maxit)) { # TODO: Iterate until zero gradient
     # Expectation step
     E = EM.E(Xc, W, sigSq)
 
@@ -28,7 +27,14 @@ fit_stpca <- function(X, W, mu, sigSq, K, nIter=50) {
 
     # ln p(X | \theta) + ln p(\theta | \beta)
     unNormedLPs[iter] = log_likelihood(Xc, W, 0, sigSq) + log_prior(K, W)
+
+    # If the log Bayes' Factor ratio is less than bftol then stop early:
+    # log(p(theta^n | X) / p(theta^{n-1} | X)) < bftol
+    if (iter>1 && exp(unNormedLPs[iter]-unNormedLPs[iter-1])<bftol) break
   }
+
+  # Truncate unassigned LPs
+  if (iter < maxit) unNormedLPs = unNormedLPs[seq_len(iter)]
 
   # Assuming convergence, \sigma = \hat\sigma, so the evidence can be approximated
   H = compute_H(X, W, mu, sigSq, K)

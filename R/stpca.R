@@ -21,15 +21,17 @@ StpcaModel <- setRefClass("StpcaModel",
     Vmean    = "matrix",
     Vvar     = "list",
     logEvidence   = "numeric",
+    logEvidences  = "numeric",
     logPosteriors = "numeric",
     logEvidenceD  = "numeric",
     H        = "list",
-    maxim    = "maxim"
+    maxim    = "maxim",
+    thetaConv = "logical"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
                           locs=matrix(), covFn=function() NULL,
-                          covFnD=function() NULL, nIter=50, ...) {
+                          covFnD=function() NULL, maxit=50, ...) {
       X      <<- X
       n      <<- nrow(X)
       k      <<- as.integer(k)
@@ -38,7 +40,6 @@ StpcaModel <- setRefClass("StpcaModel",
       covFn  <<- covFn
       covFnD <<- covFnD
 
-      # Initialize the 'maxim' slot with an empty maxim object.
       emptyMaxim <- list()
       class(emptyMaxim) <- "maxim"
       maxim  <<- emptyMaxim
@@ -48,71 +49,96 @@ StpcaModel <- setRefClass("StpcaModel",
         muHat    <<- thetaInit$mu
         sigSqHat <<- thetaInit$sigSq
         WHat     <<- thetaInit$W
-        set_beta(beta0, nIter)
+        set_beta(beta0)
+        update_theta(maxit)
       }
 
       callSuper(...)
     },
-    fit = function(nIter=50) {
-      vals <- NULL
-      try(vals <- fit_stpca(X, WHat, muHat, sigSqHat, K, nIter))
+    update_theta = function(maxit=50, bftol=1e-5) {
+      # TODO: Better convergence criteria (so it can change between outer iters)
+      tryCatch({
+        vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
+      }, error = function(err) {
+        err$message <- paste0("Error in updating theta:\n", err$message)
+        stop(err)
+      })
 
-      if (is.null(vals)) {
-        Vmean         <<- matrix()
-        Vvar          <<- list()
-        logEvidence   <<- -Inf
-        logPosteriors <<- -Inf
-        H             <<- list()
-      } else {
-        WHat          <<- vals$WHat
-        sigSqHat      <<- vals$sigSqHat
-        Vmean         <<- vals$Vmean
-        Vvar          <<- vals$Vvar
-        logEvidence   <<- vals$logEvidence
-        logPosteriors <<- vals$logPosteriors
-        H             <<- vals$H
-      }
+      # Theta-related variables to update
+      WHat          <<- vals$WHat
+      muHat         <<- vals$muHat
+      sigSqHat      <<- vals$sigSqHat
+      Vmean         <<- vals$Vmean
+      Vvar          <<- vals$Vvar
+      logEvidence   <<- vals$logEvidence
+      logEvidences  <<- c(logEvidences, vals$logEvidence)
+      logPosteriors <<- vals$logPosteriors
+      H             <<- vals$H
+      thetaConv     <<- TRUE
 
       invisible(.self)
     },
-    set_beta = function(betaNew, nIter=50) {
-      'Documentations for the method goes here'
-      if (!identical(betaNew, beta)) {
-        beta <<- betaNew
-        K    <<- Matrix()
-        try(K <<- covFn(locs, beta=betaNew), silent=TRUE) # As dppMatrix?
+    update_beta = function(...) {
+      "Method docs go here"
 
-        if (identical(K, Matrix()) || any(!is.finite(K@x))) {
-          # Enter this branch if K is problematic. If K could not be built,
-          # then it defaults to Matrix(). If K could be build but is bad,
-          # it will contain non-finite values.
-          Vmean         <<- matrix()
-          Vvar          <<- list()
-          logEvidence   <<- -Inf
-          logPosteriors <<- -Inf
-        } else {
-          fit()
+      # TODO: Don't compute K, H twice. Use set_beta.
+      #maxFn    <- function(beta_) {
+      #  K_ <- as(covFn(locs, beta=beta_), "dppMatrix")
+      #  H_ <- compute_H(X, WHat, muHat, sigSqHat, K_)
+      #  log_evidence(X, K_, WHat, muHat, sigSqHat, H_)
+      #}
+      #maxFnD   <- function(beta_) {
+      #  K_  <- as(covFn(locs, beta=beta_), "dppMatrix")
+      #  KD_ <- covFnD(locs, beta=beta_)
+      #  H_  <- compute_H(X, WHat, muHat, sigSqHat, K_)
+      #  log_evidence_d(X, K_, WHat, muHat, sigSqHat, beta_, KD_, H_)
+      #}
+      maxFn    <- function(beta_) set_beta(beta_)$logEvidence
+      maxFnD   <- function(beta_) set_beta(beta_)$logEvidenceD
+      betaMax  <- maxLik(maxFn, grad=maxFnD, start=beta, method="bfgs", ...)
+      set_beta(coef(betaMax))
+      maxim   <<- betaMax #TODO: Is the class of maxim "maxlik" or "maxim"?
+
+      invisible(.self)
+    },
+    set_beta = function(betaNew) {
+      # Only recalculate if neccesary (beta has changed, or theta has changed
+      # since last time beta was set).
+      if (!identical(beta, betaNew) || thetaConv) {
+
+        # Sanity checks; error if bad
+        K_ <- NULL
+        try(K_ <- covFn(locs, beta=betaNew), silent=TRUE) # As dppMatrix?
+        if (any(!is.finite(betaNew) | !is.numeric(betaNew))) {
+            stop(paste0("Bad beta proposed:", paste(betaNew, collapse=',')))
         }
+        if (is.null(K_)) stop("Could not construct K with the given beta & locs")
+        if (any(!is.finite(K_@x))) stop("K contains non-finite values")
+        if (nnzero(K_)==0) stop("K is entirely 0's!")
+        if (is(K_, "denseMatrix")) {
+          out <- try(K_ <- as(K_, "dppMatrix"))
+          if (is(out, "try-error")) stop(paste("Could not cast K to a",
+            "dppMatrix as it is semidefinite"))
+        }
+
+        # Checks are passed; start assigning variables
+        beta <<- betaNew
+        K    <<- K_
+        thetaConv <<- FALSE
+
+        KD <<- covFnD(locs, beta=beta)
+        H  <<- compute_H(X, WHat, muHat, sigSqHat, K)
+        logEvidence  <<- log_evidence(X, K, WHat, muHat, sigSqHat, H)
+        logEvidenceD <<- log_evidence_d(X, K, WHat, muHat,
+                                        sigSqHat, beta, KD, H)
       }
       invisible(.self)
     },
-    compute_gradient = function() {
-      KD           <<- covFnD(locs, beta=beta)
-      logEvidenceD <<- log_evidence_d(X, K, WHat, muHat, sigSqHat, beta, KD, H)
-      invisible(.self)
-    },
-    tune_beta = function(...) {
-      logLik = function(beta_) {
-        set_beta(beta_)$logEvidence
+    update = function(nIterOuter, EM.maxit=50, EM.bftol=1e-5, ...) {
+      for (iter in seq_len(nIterOuter)) {
+        update_beta(...)
+        update_theta(maxit=EM.maxit, bftol=EM.bftol)
       }
-
-      logLikGrad = function(beta_) {
-        set_beta(beta_)$compute_gradient()$logEvidenceD
-      }
-
-      maxim <<- maxBFGS(logLik, logLikGrad, start=beta, ...)
-      set_beta(maxim$estimate)
-
       invisible(.self)
     }
   )
