@@ -26,7 +26,8 @@ StpcaModel <- setRefClass("StpcaModel",
     logEvidenceD  = "numeric",
     H        = "list",
     maxim    = "maxim",
-    thetaConv = "logical"
+    thetaConv = "logical",
+    betaHist  = "matrix"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
@@ -39,6 +40,7 @@ StpcaModel <- setRefClass("StpcaModel",
       locs   <<- locs
       covFn  <<- covFn
       covFnD <<- covFnD
+      betaHist <<- matrix(nrow=0, ncol=length(beta0))
 
       emptyMaxim <- list()
       class(emptyMaxim) <- "maxim"
@@ -55,8 +57,7 @@ StpcaModel <- setRefClass("StpcaModel",
 
       callSuper(...)
     },
-    update_theta = function(maxit=50, bftol=1e-5) {
-      # TODO: Better convergence criteria (so it can change between outer iters)
+    update_theta = function(maxit=50, bftol=1.3) {
       tryCatch({
         vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
       }, error = function(err) {
@@ -81,18 +82,6 @@ StpcaModel <- setRefClass("StpcaModel",
     update_beta = function(...) {
       "Method docs go here"
 
-      # TODO: Don't compute K, H twice. Use set_beta.
-      #maxFn    <- function(beta_) {
-      #  K_ <- as(covFn(locs, beta=beta_), "dppMatrix")
-      #  H_ <- compute_H(X, WHat, muHat, sigSqHat, K_)
-      #  log_evidence(X, K_, WHat, muHat, sigSqHat, H_)
-      #}
-      #maxFnD   <- function(beta_) {
-      #  K_  <- as(covFn(locs, beta=beta_), "dppMatrix")
-      #  KD_ <- covFnD(locs, beta=beta_)
-      #  H_  <- compute_H(X, WHat, muHat, sigSqHat, K_)
-      #  log_evidence_d(X, K_, WHat, muHat, sigSqHat, beta_, KD_, H_)
-      #}
       maxFn    <- function(beta_) set_beta(beta_)$logEvidence
       maxFnD   <- function(beta_) set_beta(beta_)$logEvidenceD
       betaMax  <- maxLik(maxFn, grad=maxFnD, start=beta, method="bfgs", ...)
@@ -134,9 +123,10 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       invisible(.self)
     },
-    update = function(nIterOuter, EM.maxit=50, EM.bftol=1e-5, ...) {
+    update = function(nIterOuter, EM.maxit=50, EM.bftol=1.3, ...) {
       for (iter in seq_len(nIterOuter)) {
         update_beta(...)
+        betaHist <<- rbind(betaHist, beta)
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
       }
       invisible(.self)
