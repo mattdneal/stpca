@@ -142,7 +142,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     simulate = function(n=1, Wknown=TRUE) {
-      Vnew = matrix(rnorm(n*k), nrow=w, ncol=k)
+      Vnew = matrix(rnorm(n*k), nrow=n, ncol=k)
       if (Wknown) { # Simulate from likelihood
         Xnew = sweep(tcrossprod(Vnew, WHat), 2, muHat, "+")
       } else { # Simulate from exact marginal likelihood
