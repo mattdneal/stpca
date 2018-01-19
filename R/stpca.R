@@ -21,13 +21,13 @@ StpcaModel <- setRefClass("StpcaModel",
     Vmean    = "matrix",
     Vvar     = "list",
     logEvidence   = "numeric",
-    logEvidences  = "numeric",
     logPosteriors = "numeric",
     logEvidenceD  = "numeric",
     H        = "list",
     maxim    = "maxim",
     thetaConv = "logical",
-    betaHist  = "matrix"
+    betaHist  = "matrix",
+    convergence = "matrix"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
@@ -41,6 +41,8 @@ StpcaModel <- setRefClass("StpcaModel",
       covFn  <<- covFn
       covFnD <<- covFnD
       betaHist <<- matrix(nrow=0, ncol=length(beta0))
+      convergence <<- matrix(nrow=0, ncol=2,
+        dimnames=list(NULL, c('logEvidence', 'logPosterior')))
 
       emptyMaxim <- list()
       class(emptyMaxim) <- "maxim"
@@ -72,7 +74,6 @@ StpcaModel <- setRefClass("StpcaModel",
       Vmean         <<- vals$Vmean
       Vvar          <<- vals$Vvar
       logEvidence   <<- vals$logEvidence
-      logEvidences  <<- c(logEvidences, vals$logEvidence)
       logPosteriors <<- vals$logPosteriors
       H             <<- vals$H
       thetaConv     <<- TRUE
@@ -128,6 +129,8 @@ StpcaModel <- setRefClass("StpcaModel",
         update_beta(...)
         betaHist <<- rbind(betaHist, beta)
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
+        convergence <<- rbind(convergence,
+          c(logEvidence, tail(logPosteriors, 1)))
       }
       invisible(.self)
     },
