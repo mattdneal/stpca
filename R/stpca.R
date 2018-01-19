@@ -140,6 +140,20 @@ StpcaModel <- setRefClass("StpcaModel",
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
       }
       invisible(.self)
+    },
+    simulate = function(n=1, Wknown=TRUE) {
+      Vnew = rmvnorm(n, sigma=diag(k))
+      if (Wknown) { # Simulate from likelihood
+        Xnew = sweep(tcrossprod(Vnew, WHat), 2, muHat, "+")
+      } else { # Simulate from exact marginal likelihood
+        R = chol(K)
+        Xnew = vapply(seq_len(n), function(i) {
+          W = R %*% matrix(rnorm(d*k), nrow=d, ncol=k)
+          as.numeric(W%*%Vnew[i,]) + muHat
+        }, numeric(d))
+      }
+      Xnew = Xnew + rnorm(d*k, sd=sqrt(sigSqHat))
+      return(list(X=Xnew, V=Vnew))
     }
-  )
-)
+  ) # \methods
+) # \class def
