@@ -32,11 +32,11 @@ constr = list(
 )
 
 stpcaUpBeta  = stpca$copy()$update_beta(constraints=constr)
-stpcaUpTheta = stpcaUpBeta$copy()$update_theta(100)
+stpcaUpTheta = stpcaUpBeta$copy()$update_theta(100, bftol=1e-6)
 
 # Set beta to value near max so fewer updates can be done to converge.
 goodBeta = c(-0.965644, -1.949905, -6.886124)
-stpcaUp = stpcaUpTheta$
+stpcaUp = stpca$
             copy()$
             set_beta(goodBeta)$
             update_theta()$
