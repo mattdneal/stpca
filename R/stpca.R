@@ -59,7 +59,7 @@ StpcaModel <- setRefClass("StpcaModel",
 
       callSuper(...)
     },
-    update_theta = function(maxit=50, bftol=1.3) {
+    update_theta = function(maxit=50, bftol=1e-5) {
       tryCatch({
         vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
       }, error = function(err) {
@@ -124,7 +124,7 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       invisible(.self)
     },
-    update = function(nIterOuter, EM.maxit=50, EM.bftol=1.3, ...) {
+    update = function(nIterOuter, EM.maxit=50, EM.bftol=1e-5, ...) {
       for (iter in seq_len(nIterOuter)) {
         update_beta(...)
         betaHist <<- rbind(betaHist, beta)
