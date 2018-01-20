@@ -1,6 +1,6 @@
 #' Update theta to be the maximum-a-posteriori value using Expectation
 #' Maximisation.
-theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1.3) {
+theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1e-5) {
   stopifnot(bftol > 0)
   stopifnot(maxit > 0)
 
@@ -30,7 +30,7 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1.3) {
 
     # If the log Bayes' Factor ratio is less than bftol then stop early:
     # log(p(theta^n | X) / p(theta^{n-1} | X)) < bftol
-    if (iter>1 && exp(unNormedLPs[iter]-unNormedLPs[iter-1])<bftol) break
+    if (iter>1 && (unNormedLPs[iter]-unNormedLPs[iter-1])<bftol) break
   }
 
   # Truncate unassigned LPs
