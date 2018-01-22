@@ -121,6 +121,8 @@ StpcaModel <- setRefClass("StpcaModel",
         logEvidence  <<- log_evidence(X, K, WHat, muHat, sigSqHat, H)
         logEvidenceD <<- log_evidence_d(X, K, WHat, muHat,
                                         sigSqHat, beta, KD, H)
+        logPosteriors <<- log_likelihood(X, WHat, muHat, sigSqHat) +
+                          log_prior(K, WHat) - logEvidence
       }
       invisible(.self)
     },
@@ -128,6 +130,9 @@ StpcaModel <- setRefClass("StpcaModel",
       for (iter in seq_len(nIterOuter)) {
         update_beta(...)
         betaHist <<- rbind(betaHist, beta)
+        convergence <<- rbind(convergence,
+          c(logEvidence, tail(logPosteriors, 1)))
+
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
         convergence <<- rbind(convergence,
           c(logEvidence, tail(logPosteriors, 1)))
