@@ -27,7 +27,7 @@ StpcaModel <- setRefClass("StpcaModel",
     maxim    = "maxim",
     thetaConv = "logical",
     betaHist  = "matrix",
-    convergence = "matrix"
+    convergence = "data.frame"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
@@ -41,8 +41,14 @@ StpcaModel <- setRefClass("StpcaModel",
       covFn  <<- covFn
       covFnD <<- covFnD
       betaHist <<- matrix(nrow=0, ncol=length(beta0))
-      convergence <<- matrix(nrow=0, ncol=2,
-        dimnames=list(NULL, c('logEvidence', 'logPosterior')))
+      convergence <<- data.frame(
+        logEvidence=numeric(0),
+        logPosterior=numeric(0),
+        updateStep=factor(c(), levels="beta", "theta")
+      )
+
+      matrix(nrow=0, ncol=3,
+        dimnames=list(NULL, c('logEvidence', 'logPosterior', 'updateStep')))
 
       emptyMaxim <- list()
       class(emptyMaxim) <- "maxim"
@@ -130,12 +136,18 @@ StpcaModel <- setRefClass("StpcaModel",
       for (iter in seq_len(nIterOuter)) {
         update_beta(...)
         betaHist <<- rbind(betaHist, beta)
-        convergence <<- rbind(convergence,
-          c(logEvidence, tail(logPosteriors, 1)))
+        newConvRow = data.frame(
+          'logEvidence'=logEvidence,
+          'logPosterior'=tail(logPosteriors, 1),
+          'updateStep'='beta')
+        convergence <<- rbind(convergence, newConvRow)
 
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
-        convergence <<- rbind(convergence,
-          c(logEvidence, tail(logPosteriors, 1)))
+        newConvRow = data.frame(
+          'logEvidence'=logEvidence,
+          'logPosterior'=tail(logPosteriors, 1),
+          'updateStep'='theta')
+        convergence <<- rbind(convergence, newConvRow)
       }
       invisible(.self)
     },
