@@ -4,6 +4,7 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1e-5) {
   stopifnot(bftol > 0)
   stopifnot(maxit > 0)
 
+  k  = ncol(W)
   mu = colMeans(X)
   Xc = sweep(X, 2, mu)
 
@@ -17,7 +18,7 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=50, bftol=1e-5) {
 
     # Align W with PCs & fix sign
     W = W %*% svd(W)$v
-    W = W %*% diag(sign(W[1,]))
+    W = W %*% diag(sign(W[1,]), nrow=k, ncol=k)
 
     # Second expectation step using updated W
     E = EM.E(Xc, W, sigSq)
