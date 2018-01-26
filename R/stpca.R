@@ -32,7 +32,7 @@ StpcaModel <- setRefClass("StpcaModel",
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
                           locs=matrix(), covFn=function() NULL,
-                          covFnD=function() NULL, maxit=50, ...) {
+                          covFnD=function() NULL, maxit=100, ...) {
       X      <<- X
       n      <<- nrow(X)
       k      <<- as.integer(k)
@@ -65,7 +65,7 @@ StpcaModel <- setRefClass("StpcaModel",
 
       callSuper(...)
     },
-    update_theta = function(maxit=50, bftol=1e-5) {
+    update_theta = function(maxit=1000, bftol=1e-5) {
       tryCatch({
         vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
       }, error = function(err) {
@@ -132,8 +132,10 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       invisible(.self)
     },
-    update = function(nIterOuter, EM.maxit=50, EM.bftol=1e-5, ...) {
-      for (iter in seq_len(nIterOuter)) {
+    update = function(tune.maxit=10, tune.lptol=1e-5, EM.maxit=100, EM.bftol=1e-5, ...) {
+      oldLogPosterior = tail(logPosteriors, 1)
+      for (iter in seq_len(tune.maxit)) {
+        # Beta-update
         update_beta(...)
         betaHist <<- rbind(betaHist, beta)
         newConvRow = data.frame(
@@ -142,12 +144,20 @@ StpcaModel <- setRefClass("StpcaModel",
           'updateStep'='beta')
         convergence <<- rbind(convergence, newConvRow)
 
+        # Theta-update
         update_theta(maxit=EM.maxit, bftol=EM.bftol)
         newConvRow = data.frame(
           'logEvidence'=logEvidence,
           'logPosterior'=tail(logPosteriors, 1),
           'updateStep'='theta')
         convergence <<- rbind(convergence, newConvRow)
+
+        # Converged?
+        if (tail(logPosteriors, 1) - oldLogPosterior < tune.lptol) {
+          break
+        } else {
+          oldLogPosterior = tail(logPosteriors, 1)
+        }
       }
       invisible(.self)
     },

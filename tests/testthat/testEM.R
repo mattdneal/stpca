@@ -115,7 +115,7 @@ test_that("Iterating Expectation and W maximisation finds zero gradient point in
 
 context("EM: Full EM procedure")
 
-test_that("stpca$update_theta() finds the MAP theta", {
+test_that("stpca$update_theta() finds the MAP theta for large maxit", {
   params = list(
     W     = stpcaUpTheta$WHat,
     sigSq = stpcaUpTheta$sigSqHat,
@@ -133,5 +133,5 @@ test_that("stpca$update_theta() finds the MAP theta", {
 
   lpGrad = grad(veclp, thetaHat)
 
-  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-6)
+  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-4)
 })
