@@ -132,8 +132,7 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       invisible(.self)
     },
-    update = function(tune.maxit=10, tune.lptol=1e-5, EM.maxit=100, EM.bftol=1e-5, ...) {
-      oldLogPosterior = tail(logPosteriors, 1)
+    update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=100, EM.bftol=1e-5, ...) {
       for (iter in seq_len(tune.maxit)) {
         # Beta-update
         update_beta(...)
@@ -152,11 +151,10 @@ StpcaModel <- setRefClass("StpcaModel",
           'updateStep'='theta')
         convergence <<- rbind(convergence, newConvRow)
 
-        # Converged?
-        if (tail(logPosteriors, 1) - oldLogPosterior < tune.lptol) {
-          break
-        } else {
-          oldLogPosterior = tail(logPosteriors, 1)
+        if (iter>=1) {
+          lpDiff = abs(Reduce('-', tail(convergence$logPosterior, 2)))
+          leDiff = abs(Reduce('-', tail(convergence$logEvidence, 2)))
+          if (lpDiff < tune.tol & leDiff < tune.tol) break
         }
       }
       invisible(.self)

@@ -133,5 +133,5 @@ test_that("stpca$update_theta() finds the MAP theta for large maxit", {
 
   lpGrad = grad(veclp, thetaHat)
 
-  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-4)
+  expect_equal(lpGrad, rep(0, length(thetaHat)), tol=1e-3)
 })
