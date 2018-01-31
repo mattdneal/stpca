@@ -32,7 +32,7 @@ StpcaModel <- setRefClass("StpcaModel",
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
                           locs=matrix(), covFn=function() NULL,
-                          covFnD=function() NULL, maxit=100, ...) {
+                          covFnD=function() NULL, maxit=500, ...) {
       X      <<- X
       n      <<- nrow(X)
       k      <<- as.integer(k)
@@ -65,7 +65,7 @@ StpcaModel <- setRefClass("StpcaModel",
 
       callSuper(...)
     },
-    update_theta = function(maxit=1000, bftol=1e-5) {
+    update_theta = function(maxit=500, bftol=1e-5) {
       tryCatch({
         vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
       }, error = function(err) {
@@ -132,7 +132,7 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       invisible(.self)
     },
-    update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=100, EM.bftol=1e-5, ...) {
+    update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=500, EM.bftol=1e-5, ...) {
       for (iter in seq_len(tune.maxit)) {
         # Beta-update
         update_beta(...)

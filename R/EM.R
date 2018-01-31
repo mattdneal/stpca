@@ -1,6 +1,6 @@
 #' Update theta to be the maximum-a-posteriori value using Expectation
 #' Maximisation.
-theta_EM <- function(X, W, mu, sigSq, K, maxit=100, bftol=1e-5) {
+theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5) {
   stopifnot(bftol > 0)
   stopifnot(maxit > 0)
 
