@@ -1,3 +1,9 @@
+#' Initialize mu, sigSq and W from PPCA.
+#'
+#' @param X Data
+#' @param k latent dimensionality
+#'
+#' @return MAP PPCA parameters
 initialize_from_ppca <- function(X, k) {
   n <- nrow(X)
   d <- ncol(X)
