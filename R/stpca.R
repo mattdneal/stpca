@@ -170,7 +170,7 @@ StpcaModel <- setRefClass("StpcaModel",
           as.numeric(W%*%Vnew[i,]) + muHat
         }, numeric(d))
       }
-      Xnew = Xnew + rnorm(d*k, sd=sqrt(sigSqHat))
+      Xnew = Xnew + rnorm(n*d, sd=sqrt(sigSqHat))
       return(list(X=Xnew, V=Vnew))
     }
   ) # \methods
