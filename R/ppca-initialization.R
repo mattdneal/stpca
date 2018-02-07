@@ -4,6 +4,7 @@
 #' @param k latent dimensionality
 #'
 #' @return MAP PPCA parameters
+#' @export
 initialize_from_ppca <- function(X, k) {
   n <- nrow(X)
   d <- ncol(X)
