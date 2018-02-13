@@ -49,8 +49,8 @@ compute_H <- function(X, WHat, muHat, sigSqHat, K) {
                      0.5*n*sum(diag(Cinv%*%Cinv)))
   H = list()
   H[paste("w",1:length(HW),sep='')] = HW
-  H["mu"]    = Hmu
-  H["sigSq"] = HsigSq
+  H[["mu"]]    = Hmu
+  H[["sigSq"]] = HsigSq
   return(H)
 }
 
