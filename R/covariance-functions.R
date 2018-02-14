@@ -81,6 +81,37 @@ cov.noisy.SE.d <- function(X, X2, beta, D=NA, ...) {
                 cov.independent.d(X, X2, beta[3], D)))
 }
 
+#' Computationally cheap estimate for beta0 for cov.noisy.SE.
+#' @param X The dataset being analysed with stpca
+#' @param locations Matrix containing the location of each feature in rows
+#' @param k Latent dimensionality used in stpca
+#' @export
+#' @include synthesize-data.R
+cov.noisy.SE.beta0 <- function(X, locations, k) {
+  stopifnot(is.matrix(locations))
+  n = nrow(X); d = ncol(X)
+
+  covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=0)
+  covar.eigval = covar.svd$d^2
+  sigSq = sum(covar.eigval[-(1:k)])/(d-k)
+
+  # \sigma^2_f <- 1/k mean( diag(cov(X) - \sigma^2\mathit{I}) )
+  sigSqk0 = mean((apply(X, 2, var) - sigSq)/k)
+  Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
+  C      = cov(as.matrix(X))
+
+  # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
+  l0    = mean(sqrt(0.5*Rsq/(log(k*sigSqk0) - log(mean(C)))), na.rm=TRUE)
+
+  # Can't learn lengthscales much longer than longest or shorter than shortest
+  # observed distance.
+  l0    = min(l0, 0.9*sqrt(max(Rsq)))
+  l0    = max(l0, 1.1*sqrt(min(Rsq)))
+  beta0 = log(c("logsigSqk"=sigSqk0, "logl"=l0, "logsigSqn"=log(sigSq)))
+
+  return(beta0)
+}
+
 #' Squared exponential covariance function.
 #'
 #' The squared exponential covariance function. This produces a semidefinite
@@ -172,28 +203,7 @@ cov.SE.d <- function(X, X2, beta, D=NA, ...) {
 #' stopifnot(length(beta0) == 2)
 #' stopifnot(all(is.finite(beta0)))
 cov.SE.beta0 <- function(X, locations, k) {
-  stopifnot(is.matrix(locations))
-  n = nrow(X); d = ncol(X)
-
-  covar.svd = svd(scale(X, scale=FALSE)/sqrt(n), nu=0, nv=0)
-  covar.eigval = covar.svd$d^2
-  sigSq = sum(covar.eigval[-(1:k)])/(d-k)
-
-  # \sigma^2_f <- 1/k mean( diag(cov(X) - \sigma^2\mathit{I}) )
-  sigSqk0 = mean((apply(X, 2, var) - sigSq)/k)
-  Rsq    = apply(locations, 1, function(loc) colSums((t(locations)-loc)^2))
-  C      = cov(as.matrix(X))
-
-  # Upper-bounded by the maximum distance, since we cant learn a much larger distance than this!
-  l0    = mean(sqrt(0.5*Rsq/(log(k*sigSqk0) - log(mean(C)))), na.rm=TRUE)
-
-  # Can't learn lengthscales much longer than longest or shorter than shortest
-  # observed distance.
-  l0    = min(l0, 0.9*sqrt(max(Rsq)))
-  l0    = max(l0, 1.1*sqrt(min(Rsq)))
-  beta0 = log(c("logsigSqk"=sigSqk0, "logl"=l0))
-
-  return(beta0)
+  return(cov.noisy.SE.beta0(X, locations, k)[c("logsigSqk", "logl")])
 }
 
 #' Rational quadratic covariance function

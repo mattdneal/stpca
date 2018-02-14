@@ -17,7 +17,7 @@ dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
 locs = dataset$grid
 X = as.matrix(dataset$X)
 
-beta0 = c(cov.SE.beta0(X, locs, k), log(1e0))
+beta0 = c(cov.noisy.SE.beta0(X, locs, k))
 
 stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, maxit=100)
 
