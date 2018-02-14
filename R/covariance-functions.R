@@ -303,6 +303,18 @@ cov.RQ.beta0 <- function(X, locations, k) {
   return(beta0)
 }
 
+#' Computationally cheap estimate for beta0 for cov.noisy.RQ.
+#' @param X The dataset being analysed with stpca
+#' @param locations Matrix containing the location of each feature in rows
+#' @param k Latent dimensionality used in stpca
+#' @export
+#' @include synthesize-data.R
+#' @examples
+cov.noisy.RQ.beta0 <- function(X, locations, k) {
+  beta0SE = cov.noisy.SE.beta0(X, locations, k)
+  beta0   = c(beta0SE, "logalpha0"=log(alpha0))
+  return(beta0)
+}
 
 #' Independant covariance function. Is zero everywhere except for inputs with
 #' zero distance. Has single hyperparameter of log signal variance. All nonzero
