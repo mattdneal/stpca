@@ -107,7 +107,7 @@ cov.noisy.SE.beta0 <- function(X, locations, k) {
   # observed distance.
   l0    = min(l0, 0.9*sqrt(max(Rsq)))
   l0    = max(l0, 1.1*sqrt(min(Rsq)))
-  beta0 = log(c("logsigSqk"=sigSqk0, "logl"=l0, "logsigSqn"=log(sigSq)))
+  beta0 = log(c("logsigSqk"=sigSqk0, "logl"=l0, "logsigSqn"=sigSq))
 
   return(beta0)
 }
