@@ -309,7 +309,6 @@ cov.RQ.beta0 <- function(X, locations, k) {
 #' @param k Latent dimensionality used in stpca
 #' @export
 #' @include synthesize-data.R
-#' @examples
 cov.noisy.RQ.beta0 <- function(X, locations, k) {
   beta0SE = cov.noisy.SE.beta0(X, locations, k)
   beta0   = c(beta0SE, "logalpha0"=log(alpha0))

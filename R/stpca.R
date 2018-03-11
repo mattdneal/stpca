@@ -172,6 +172,17 @@ StpcaModel <- setRefClass("StpcaModel",
       }
       Xnew = Xnew + rnorm(n*d, sd=sqrt(sigSqHat))
       return(list(X=Xnew, V=Vnew))
-    }
-  ) # \methods
+    },
+    encode = function(Xnew) {
+      stopifnot(ncol(Xnew)==d)
+      Xnew <- sweep(Xnew, 2, muHat) # Center
+      Vnew <- EM.E(Xnew, WHat, sigSqHat)
+      return(Vnew)
+    },
+    decode = function(Vnew) {
+      stopifnot(ncol(Vnew)==k)
+      Xrec <- tcrossprod(Vnew, WHat) + t(replicate(nrow(Vnew), muHat))
+      return(Xrec)
+    }# \methods
+  )
 ) # \class def

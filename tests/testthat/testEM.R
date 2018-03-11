@@ -67,7 +67,7 @@ test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local
   }, sigSq)[1]
 
   # Zero gradient
-  expect_equal(llGrad, 0)
+  expect_equal(llGrad, 0, tol=1e-7)
 
   # 1x1 hessian is negative definite => local maximum
   expect_lt(llHess, 0)
