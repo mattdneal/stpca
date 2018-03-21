@@ -335,7 +335,7 @@ cov.independent <- function(X, X2, beta, D=NA, ...) {
   D = as(D, "TsparseMatrix")
   keep = which(is.infinite(D@x))
   return(sparseMatrix(i=D@i[keep], j=D@j[keep], x=rep(exp(beta), length(keep)),
-         dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=TRUE))
+         dims=c(nrow(D), ncol(D)), index1=FALSE, symmetric=isSymmetric(D)))
 }
 
 #' Derivative of the independent covariance function. Does not depend
