@@ -377,7 +377,8 @@ cov.MR <- function(X, beta, ...) {
   sigVar = exp(beta[1])  # Signal variance: k(0)
   supLen = exp(beta[-1]) # Support length; if d>supLen, k(d)=0
 
-  D = distanceMatrix(X%*%diag(1/supLen), max.dist=1)
+  n = ncol(X)
+  D = distanceMatrix(X%*%diag(1/supLen, nrow=n, ncol=n), max.dist=1)
 
   r = D@x
   D@x = sigVar*((2+cos(2*pi*r))*(1-r)/3 + sin(2*pi*r)/(2*pi))
