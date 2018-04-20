@@ -381,7 +381,7 @@ cov.MR <- function(X, beta, ...) {
   D = distanceMatrix(X%*%diag(1/supLen, nrow=n, ncol=n), max.dist=1)
 
   r = D@x
-  D@x = sigVar*((2+cos(2*pi*r))*(1-r)/3 + sin(2*pi*r)/(2*pi))
+  D@x = sigVar*pmax(((2+cos(2*pi*r))*(1-r)/3 + sin(2*pi*r)/(2*pi)), 0)
   return(D)
 }
 
