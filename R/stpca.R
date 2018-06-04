@@ -117,6 +117,9 @@ StpcaModel <- setRefClass("StpcaModel",
             "dppMatrix as it is semidefinite"))
         }
 
+        # Attach beta to K as an attribute
+        attr(K_, "beta") <- betaNew
+
         # Checks are passed; start assigning variables
         beta <<- betaNew
         K    <<- K_
@@ -177,12 +180,12 @@ StpcaModel <- setRefClass("StpcaModel",
       stopifnot(ncol(Xnew)==d)
       Xnew <- sweep(Xnew, 2, muHat) # Center
       Vnew <- EM.E(Xnew, WHat, sigSqHat)
-      return(Vnew)
+      return(Vnew) # Stochastic encoder: contains Vmean and Vvar
     },
     decode = function(Vnew) {
       stopifnot(ncol(Vnew)==k)
       Xrec <- tcrossprod(Vnew, WHat) + t(replicate(nrow(Vnew), muHat))
-      return(Xrec)
+      return(Xrec) # Deterministic decoder, only contains mean because cov mat is big.
     }# \methods
   )
 ) # \class def

@@ -99,7 +99,15 @@ compute_H_W <- function(X, WHat, muHat, sigSqHat, K) {
     Kinv = solve(K, sparse=FALSE) # TODO: Remove sparse=False? Why is it here? :s
     invSuccess=TRUE
   }, silent=TRUE)
-  if (!invSuccess) { stop("Could not invert K") }
+  if (!invSuccess) {
+    beta <- (attr(K, "beta"))
+    if (!is.null(beta)) {
+      betaStr <- paste0("beta=", paste0(round(beta, 3), collapse=','))
+    } else {
+      betaStr <- ""
+    }
+    stop(paste("Could not invert K.", betaStr))
+  }
   Kinv = forceSymmetric(Kinv) # Kinv isn't symmetric here; failure of solve method?
 
   HW = list()
