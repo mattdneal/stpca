@@ -27,12 +27,15 @@ StpcaModel <- setRefClass("StpcaModel",
     maxim    = "maxim",
     thetaConv = "logical",
     betaHist  = "matrix",
-    convergence = "data.frame"
+    convergence = "data.frame",
+    sparse   = "logical",
+    b        = "numeric"
   ),
   methods = list(
     initialize = function(X=matrix(nrow=0, ncol=0), k=1, beta0=numeric(0),
                           locs=matrix(), covFn=function() NULL,
-                          covFnD=function() NULL, maxit=500, ...) {
+                          covFnD=function() NULL, maxit=500, sparse=FALSE,
+                          b=-Inf, ...) {
       X      <<- X
       n      <<- nrow(X)
       k      <<- as.integer(k)
@@ -40,6 +43,8 @@ StpcaModel <- setRefClass("StpcaModel",
       locs   <<- locs
       covFn  <<- covFn
       covFnD <<- covFnD
+      sparse <<- sparse
+      b      <<- b
       betaHist <<- matrix(nrow=0, ncol=length(beta0))
       convergence <<- data.frame(
         logEvidence=numeric(0),
@@ -67,7 +72,8 @@ StpcaModel <- setRefClass("StpcaModel",
     },
     update_theta = function(maxit=500, bftol=1e-5) {
       tryCatch({
-        vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit, bftol=bftol)
+        vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit,
+                         bftol=bftol, sparse=sparse, b=b)
       }, error = function(err) {
         err$message <- paste0("Error in updating theta:\n", err$message)
         stop(err)
@@ -88,6 +94,10 @@ StpcaModel <- setRefClass("StpcaModel",
     },
     update_beta = function(...) {
       "Method docs go here"
+
+      if (sparse) stop(paste("Cannot tune beta under a sparse model since",
+        "the laplace approximation does not apply. This will probably",
+        "never be implemented. Sorry!"))
 
       maxFn    <- function(beta_) set_beta(beta_)$logEvidence
       maxFnD   <- function(beta_) set_beta(beta_)$logEvidenceD

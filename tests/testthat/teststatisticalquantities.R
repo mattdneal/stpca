@@ -81,6 +81,18 @@ test_that("Log prior matches a multivariate normal", {
   expect_equal(lp1, lp2)
 })
 
+test_that("Prior integrates to 1 in 1d", {
+  halfInt <- integrate(
+    f = function(W) {
+      vapply(W, function(w) {
+        exp(log_prior(1, w))
+      }, numeric(1))
+    },
+    lower = 0,
+    upper = 10) # Only integrate half; faster
+  expect_equal(halfInt$value, 0.5)
+})
+
 test_that("Likelihood matches simple analytical solution with W=0", {
   # W=0 means log likelihood
   W = matrix(0, nrow=d, ncol=k)

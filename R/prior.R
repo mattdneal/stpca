@@ -5,6 +5,7 @@
 #' @return un-normalised log prior (numeric)
 #' @export
 log_prior <- function(K, W) {
+  W <- Matrix(W)
   d = nrow(W)
   k = ncol(W)
 

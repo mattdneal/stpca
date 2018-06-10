@@ -16,6 +16,7 @@ sigSq = 1.8
 dataset = synthesize_data_kern(n, k, dim, kern=k_se, noisesd=sqrt(sigSq))
 locs = dataset$grid
 X = as.matrix(dataset$X)
+Xc = sweep(X, 2, colMeans(X))
 
 beta0 = cov.noisy.SE.beta0(X, locs, k)
 

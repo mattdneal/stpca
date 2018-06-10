@@ -4,7 +4,7 @@
 \alias{EM.E}
 \title{Expectation step}
 \usage{
-EM.E(Xc, W, sigSq)
+EM.E(Xc, W, sigSq, sparse = FALSE)
 }
 \description{
 Expectation step

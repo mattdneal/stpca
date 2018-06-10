@@ -52,7 +52,7 @@ log_likelihood <- function(X, W, mu, sigSq) {
 #' used to check that each EM M-step maximizes this quantity w.r.t \\theta.
 #'
 #' @export
-complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
+complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K, sparse=FALSE, b=NULL) {
   require(mvtnorm)
   d = ncol(X)
   k = ncol(W)
@@ -64,7 +64,11 @@ complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K) {
               sum(diag(Reduce('+', Vvar))))
 
   # log p(\theta | \beta)
-  pr2 = log_prior(K, W)
+  if (sparse) {
+    pr2 <- log_sparse_prior(W, K, b)
+  } else {
+    pr2 <- log_prior(K, W)
+  }
 
   # E[ log p(X | V, \theta) | V ]
   pr3 = -(n*d*log(2*pi*sigSq) +

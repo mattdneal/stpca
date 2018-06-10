@@ -1,4 +1,4 @@
-context("Latent representations & reconstructions of new data")
+context("Latent representations & reconstructions")
 
 test_that("New data can be encoded to latent space", {
   Xnew <- stpcaUp$simulate(10, Wknown=TRUE)$X

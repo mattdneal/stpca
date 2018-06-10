@@ -7,7 +7,8 @@
 \\propto
   E[ log p(X | V, \\theta) | V ] + log p(\\theta | \\beta) + E[ log p(V) | V ]}
 \usage{
-complete_log_posterior(X, V, Vvar, W, mu, sigSq, K)
+complete_log_posterior(X, V, Vvar, W, mu, sigSq, K, sparse = FALSE,
+  b = NULL)
 }
 \description{
 This is "propertional to" because we do not compute the normalising

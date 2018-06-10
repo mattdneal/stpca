@@ -20,6 +20,7 @@ Collate:
     'evidence.R'
     'ppca-initialization.R'
     'prior.R'
+    'sparse-W.R'
     'statistical-quantities.R'
     'stpca.R'
 Imports: functional, MASS, fields, maxLik, Matrix, numDeriv

@@ -5,7 +5,8 @@
 \title{Update theta to be the maximum-a-posteriori value using Expectation
 Maximisation.}
 \usage{
-theta_EM(X, W, mu, sigSq, K, maxit = 500, bftol = 1e-05)
+theta_EM(X, W, mu, sigSq, K, maxit = 500, bftol = 1e-05, sparse = FALSE,
+  b = NULL)
 }
 \description{
 Update theta to be the maximum-a-posteriori value using Expectation
