@@ -85,10 +85,12 @@ StpcaModel <- setRefClass("StpcaModel",
       sigSqHat      <<- vals$sigSqHat
       Vmean         <<- vals$Vmean
       Vvar          <<- vals$Vvar
-      logEvidence   <<- vals$logEvidence
       logPosteriors <<- vals$logPosteriors
-      H             <<- vals$H
       thetaConv     <<- TRUE
+      if (!sparse) {
+        logEvidence   <<- vals$logEvidence
+        H             <<- vals$H
+      }
 
       invisible(.self)
     },
