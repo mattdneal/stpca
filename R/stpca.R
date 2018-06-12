@@ -101,6 +101,18 @@ StpcaModel <- setRefClass("StpcaModel",
         "the laplace approximation does not apply. This will probably",
         "never be implemented. Sorry!"))
 
+      # If beta begins on the boundary of the feasible region, shift it
+      # a small amount within the region.
+      if (!is.null(list(...)$constr)) {
+        A <- list(...)$constr$ineqA
+        B <- list(...)$constr$ineqB
+        for (i in 1:nrow(A)) {
+          if (A[i,]%*%beta + B[i] == 0) {
+            beta <<- beta + A[i,]/crossprod(A[i,])*1e-4
+          }
+        }
+      }
+
       maxFn    <- function(beta_) set_beta(beta_)$logEvidence
       maxFnD   <- function(beta_) set_beta(beta_)$logEvidenceD
       betaMax  <- maxLik(maxFn, grad=maxFnD, start=beta, method="bfgs", ...)
