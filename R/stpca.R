@@ -139,6 +139,8 @@ StpcaModel <- setRefClass("StpcaModel",
           out <- try(K_ <- as(K_, "dppMatrix"))
           if (is(out, "try-error")) stop(paste("Could not cast K to a",
             "dppMatrix as it is semidefinite"))
+            # TODO: #"dppMatrix as it is semidefinite. Beta=",paste(round(beta,2),
+            #collapse=','))
         }
 
         # Attach beta to K as an attribute
@@ -157,6 +159,12 @@ StpcaModel <- setRefClass("StpcaModel",
         logPosteriors <<- log_likelihood(X, WHat, muHat, sigSqHat) +
                           log_prior(K, WHat) - logEvidence
       }
+      invisible(.self)
+    },
+    set_b = function(bNew) {
+      if (!sparse) stop("This is not a sparse model; 'b' does not apply")
+      stopifnot(b>0)
+      b <<- bNew
       invisible(.self)
     },
     update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=500, EM.bftol=1e-5, ...) {
