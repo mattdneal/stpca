@@ -167,6 +167,18 @@ StpcaModel <- setRefClass("StpcaModel",
       b <<- bNew
       invisible(.self)
     },
+    set_sparse = function(spNew, bNew=1) {
+      stopifnot(is.logical(spNew))
+      if (spNew != sparse) {
+        sparse <<- spNew
+        if (spNew) {
+          H <<- NULL
+          logEvidence <<- NULL
+          set_b(bNew)
+        }
+      }
+      invisible(.self)
+    },
     update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=500, EM.bftol=1e-5, ...) {
       for (iter in seq_len(tune.maxit)) {
         # Beta-update
