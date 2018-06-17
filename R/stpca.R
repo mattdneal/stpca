@@ -163,19 +163,17 @@ StpcaModel <- setRefClass("StpcaModel",
     },
     set_b = function(bNew) {
       if (!sparse) stop("This is not a sparse model; 'b' does not apply")
-      stopifnot(b>0)
+      stopifnot(bNew>0)
       b <<- bNew
       invisible(.self)
     },
-    set_sparse = function(spNew, bNew=1) {
+    set_sparse = function(spNew, b) {
       stopifnot(is.logical(spNew))
-      if (spNew != sparse) {
-        sparse <<- spNew
-        if (spNew) {
-          H <<- NULL
-          logEvidence <<- NULL
-          set_b(bNew)
-        }
+      sparse <<- spNew
+      if (spNew) {
+        H <<- list()
+        logEvidence <<- numeric(0)
+        set_b(b)
       }
       invisible(.self)
     },

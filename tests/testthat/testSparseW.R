@@ -136,3 +136,10 @@ test_that("No hyperparameter updating for a sparse model", {
   sstpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, sparse=TRUE, b=1, maxit=100)
   expect_error(sstpca$update())
 })
+
+context("Sparsity related methods")
+
+test_that("Can convert a non-sparse model to sparse and infer theta", {
+  sstpca <- stpcaUp$copy()$set_sparse(TRUE, 0.09)$update_theta()
+  expect_that(any(sstpca$WHat==0), is_true())
+})
