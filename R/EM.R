@@ -21,8 +21,10 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5, sparse=FALSE, b=
     }
 
     # Align W with PCs & fix sign
-    W = W %*% svd(W)$v
-    W = W %*% diag(sign(W[1,]), nrow=k, ncol=k)
+    if (!sparse) {
+      W = W %*% svd(W)$v
+      W = W %*% diag(sign(W[1,]), nrow=k, ncol=k)
+    }
 
     # Second expectation step using updated W
     E = EM.E(Xc, W, sigSq, sparse=sparse)

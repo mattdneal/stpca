@@ -29,6 +29,7 @@ dlaplace <- function(x, b, logarithm=FALSE) {
 }
 
 log_sparse_prior <- function(W, K, b) {
+  stopifnot(is.numeric(b))
   W <- Matrix(W)
   stopifnot(nrow(W) >= ncol(W))
   normPart <- log_prior(K, W)
