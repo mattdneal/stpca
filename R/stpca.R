@@ -1,6 +1,7 @@
 #' Structured PCA Model
 #'
 #' @import Matrix
+#' @import foreach
 #' @import maxLik
 #' @export
 StpcaModel <- setRefClass("StpcaModel",
@@ -228,6 +229,48 @@ StpcaModel <- setRefClass("StpcaModel",
       stopifnot(ncol(Vnew)==k)
       Xrec <- tcrossprod(Vnew, WHat) + t(replicate(nrow(Vnew), muHat))
       return(Xrec) # Deterministic decoder, only contains mean because cov mat is big.
+    },
+    set_X = function(Xnew) {
+      stopifnot(ncol(Xnew) == d)
+      X <<- Xnew
+      n <<- nrow(Xnew)
+      muHat <<- colMeans(X)
+      invisible(.self)
+    },
+    crossvalidate = function(nFolds=3, nThreads=1) {
+      stopifnot(nFolds>=2)
+      stopifnot(nThreads>0)
+
+      # Set up threading if neccesary
+      `%doOp%` <- `%do%`
+      if (nThreads>1) {
+        registerDoMC(nThreads)
+        `%doOp%` <- `%dopar%`
+      }
+
+      # Logical indices for training set partitions
+      trInd <- lapply(1:nFolds, function(fold) {
+        ((((1:nrow(X))-1) %% nFolds)+1) != fold
+      })
+
+      cvout <- (
+        foreach(fold=1:nFolds, .combine=rbind)
+      ) %doOp% {
+        # Split data into train/test
+        Xtr <- X[ trInd[[fold]],]
+        Xte <- X[!trInd[[fold]],]
+
+        # Fit model to training data; init from current model
+        stpcaTr <- .self$copy()$set_X(Xtr)$update_theta()
+
+        # Compute likelihood of test set given trained model
+        llTe <- log_likelihood(Xte, stpcaTr$WHat,
+                               stpcaTr$muHat, stpcaTr$sigSqHat)
+
+        foldout <- data.frame(fold=fold, ll=llTe)
+        return(foldout)
+      }
+      return(cvout)
     }# \methods
   )
 ) # \class def

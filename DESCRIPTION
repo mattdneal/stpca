@@ -23,7 +23,7 @@ Collate:
     'sparse-W.R'
     'statistical-quantities.R'
     'stpca.R'
-Imports: functional, MASS, fields, maxLik, Matrix, numDeriv
+Imports: functional, MASS, fields, maxLik, Matrix, numDeriv, foreach, doMC
 ByteCompile: true
 RoxygenNote: 6.0.1.9000
 Suggests: testthat
