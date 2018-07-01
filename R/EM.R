@@ -91,7 +91,7 @@ EM.E <- function(Xc, W, sigSq, sparse=FALSE) {
     RtV <- Matrix(NA, nrow=nrow(W), ncol=ncol(W))
     for (l in 1:ncol(W)) {
       for (m in 1:nrow(W)) {
-        RtV[m,l] <- crossprod(X[,m] -
+        RtV[m,l] <- crossprod(Xc[,m] -
           tcrossprod(Vmean[,-l,drop=FALSE], W[m,-l,drop=FALSE]),
         Vmean[,l])
       }
