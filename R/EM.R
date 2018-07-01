@@ -5,7 +5,6 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5, sparse=FALSE, b=
   stopifnot(maxit > 0)
 
   k  = ncol(W)
-  mu = colMeans(X)
   Xc = sweep(X, 2, mu)
 
   unNormedLPs = numeric(maxit) # un-normalised log posteriors
