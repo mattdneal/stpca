@@ -42,34 +42,26 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5, sparse=FALSE, b=
   # Truncate unassigned LPs
   if (iter < maxit) unNormedLPs = unNormedLPs[seq_len(iter)]
 
+  EMout <- list(
+    WHat = W,
+    muHat = mu,
+    sigSqHat = sigSq,
+    Vmean = E$Vmean,
+    Vvar = E$Vvar,
+    logPosteriors = unNormedLPs
+  )
+
   if (!sparse) {
     # Assuming convergence, \sigma = \hat\sigma, so the evidence can be approximated
     H = compute_H(X, W, mu, sigSq, K)
     logEvidence = log_evidence(Xc, K, W, 0, sigSq, H)
 
     # We now know the evidence to normalize the above log posterior values
-    LPs = unNormedLPs - logEvidence
-
-    return(list(
-      WHat = W,
-      muHat = mu,
-      sigSqHat = sigSq,
-      Vmean = E$Vmean,
-      Vvar = E$Vvar,
-      logEvidence = logEvidence,
-      logPosteriors = LPs,
-      H = H
-    ))
-  } else {
-    return(list(
-      WHat = W,
-      muHat = mu,
-      sigSqHat = sigSq,
-      Vmean = E$Vmean,
-      Vvar = E$Vvar,
-      logPosteriors = unNormedLPs
-    ))
+    EMout$logEvidence = logEvidence
+    EMout$logPosteriors = unNormedLPs - logEvidence
+    EMout$H = H
   }
+  return(EMout)
 }
 
 #' Expectation step
