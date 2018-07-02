@@ -1,8 +1,14 @@
 context("Crossvalidation")
 
 expect_that("crossvalidating gives sensible output", {
-  cvll <- mean(stpcaUp$crossvalidate()$ll)
+  cvll1 <- mean(stpcaUp$crossvalidate()$ll)
   expect_true(is.finite(cvll))
+
+  stpcaCpy <- stpcaUp$copy()$set_sparse(TRUE, 0.01) # sparse
+  cvll2 <- mean(stpcaUp$crossvalidate()$ll)
+  expect_true(is.finite(cvll2))
+
+  expect_equal(cvll1, cvll2)
 })
 
 expect_that("crossvalidating picks most likely beta", {
