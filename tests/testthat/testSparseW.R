@@ -36,6 +36,25 @@ test_that("Sparse prior errors correctly", {
   expect_error(log_sparse_prior(stpca$W, stpca$K, -1))
 })
 
+test_that("Sparse posterior has expected W invariances", {
+  W     <- stpcaUp$WHat
+  sparseLP <- function(W) {
+    log_likelihood(Xc, W, 0, stpcaUp$sigSqHat) +
+      log_sparse_prior(W, stpcaUp$K, 0.001)
+  }
+
+  lp1 <- sparseLP(W)
+  lp2 <- sparseLP(W[,rev(1:k)]) # Invariant to switching dimensions
+  lp3 <- sparseLP(W*matrix(sign(d*k), nrow=d, ncol=k)) # Sign invariant
+
+  expect_equal(lp1, lp2)
+  expect_equal(lp1, lp3)
+
+  R <- svd(matrix(rnorm(k*k), nrow=k))$u # Random orthonormal matrix
+  lp4 <- sparseLP(W %*% R) # *not* invariant to rotations
+  expect_true(lp1 != lp4)
+})
+
 context("EM: Sparse E-step")
 
 test_that("Sparse E-step behaves sensibly", {
