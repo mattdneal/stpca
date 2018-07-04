@@ -2,6 +2,7 @@
 #'
 #' @import Matrix
 #' @import foreach
+#' @import doMC
 #' @import maxLik
 #' @export
 StpcaModel <- setRefClass("StpcaModel",
