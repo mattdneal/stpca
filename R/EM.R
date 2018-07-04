@@ -21,8 +21,11 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5, sparse=FALSE, b=
 
     # Align W with PCs & fix sign
     if (!sparse) {
-      W = W %*% svd(W)$v
-      W = W %*% diag(sign(W[1,]), nrow=k, ncol=k)
+      W <- W %*% svd(W)$v
+      W <- W %*% diag(sign(W[1,]), nrow=k, ncol=k)
+    } else {
+      magnitudes <- apply(W, 2, function(w) norm(w, "2"))
+      W <- W[,order(magnitudes, decreasing=TRUE)]
     }
 
     # Second expectation step using updated W
@@ -142,6 +145,8 @@ EM.M.W.sparse <- function(Xc, sigSq, Vmean, Vvar, colVmag, RtV, K, b, reldiff=1e
     converged <- (lpNew - lp < reldiff)
     lp <- lpNew
   }
+
+  
 
   return(W)
 }
