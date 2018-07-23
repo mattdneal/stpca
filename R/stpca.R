@@ -1,5 +1,31 @@
 #' Structured PCA Model
 #'
+#' @field X The matrix of data
+#' @field n The number of samples
+#' @field k Latent dimensionality
+#' @field d Simensionality of observations
+#' @field beta Covariance function hyperparameters
+#' @field K covariance matrix generated from the covariance function and hyperparameters
+#' @field KD Partial derivatived of K w.r.t each of the hyperparameters
+#' @field locs Locations (t_i)
+#' @field covFn Covariance function
+#' @field covFnD Function giving partial derivatives of covariance function w.r.t hyperparameters
+#' @field muHat MAP estimate of mu
+#' @field WHat MAP estimate of W
+#' @field sigSqHat MAP estimate of sigSq
+#' @field Vmean The posterior mean of each latent variable
+#' @field VVar The posterior variance around each latent variable
+#' @field logEvidence log of the approximate evidence
+#' @field logPosteriors sequence of posteriors obtained in fitting. Un-normalised if sparse
+#' @field logEvidenceD Partial derivatives of evidence w.r.t hyperparameters
+#' @field H The precision matrix for the gaussian approximation to the posterior around each w
+#' @field maxim the maximisation object returned in hyperparameter tuning
+#' @field thetaConv Whether theta has been optimised to convergence (if false, beta has probably converged, not theta)
+#' @field theta betaHist history of betas in optimisation
+#' @field convergence History of logEvidence and logPosteror; used to assess convergence
+#' @field sparse whether this is a sparse stpca model
+#' @field b The sparsity hyperparameter in a sparse model.
+#'
 #' @import Matrix
 #' @import foreach
 #' @import doMC
@@ -73,6 +99,7 @@ StpcaModel <- setRefClass("StpcaModel",
       callSuper(...)
     },
     update_theta = function(maxit=500, bftol=1e-5) {
+      "Finds the MAP theta using EM."
       tryCatch({
         vals <- theta_EM(X, WHat, muHat, sigSqHat, K, maxit=maxit,
                          bftol=bftol, sparse=sparse, b=b)
@@ -97,7 +124,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     update_beta = function(...) {
-      "Method docs go here"
+      "Optimises the approximate evidence with respect to the hyperparameters."
 
       if (sparse) stop(paste("Cannot tune beta under a sparse model since",
         "the laplace approximation does not apply. This will probably",
@@ -124,6 +151,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     set_beta = function(betaNew) {
+      "Sets beta to a new value, recomputes K, KD and H."
       # Only recalculate if neccesary (beta has changed, or theta has changed
       # since last time beta was set).
       if (!identical(beta, betaNew) || thetaConv) {
@@ -164,12 +192,14 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     set_b = function(bNew) {
+      "Setter for 'b'"
       if (!sparse) stop("This is not a sparse model; 'b' does not apply")
       stopifnot(bNew>0)
       b <<- bNew
       invisible(.self)
     },
     set_sparse = function(spNew, b) {
+      "Setter for 'sparse'"
       stopifnot(is.logical(spNew))
       sparse <<- spNew
       if (spNew) {
@@ -180,6 +210,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     update = function(tune.maxit=10, tune.tol=1e-5, EM.maxit=500, EM.bftol=1e-5, ...) {
+      "The major method for performing inference. This iterates between updating theta (using update_theta) and updating beta (using update_beta)."
       for (iter in seq_len(tune.maxit)) {
         # Beta-update
         update_beta(...)
@@ -207,6 +238,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     simulate = function(n=1, Wknown=TRUE) {
+      "Simulates new synthetic data from a fitted model."
       Vnew = matrix(rnorm(n*k), nrow=n, ncol=k)
       if (Wknown) { # Simulate from likelihood
         Xnew = sweep(tcrossprod(Vnew, WHat), 2, muHat, "+")
@@ -221,17 +253,20 @@ StpcaModel <- setRefClass("StpcaModel",
       return(list(X=Xnew, V=Vnew))
     },
     encode = function(Xnew) {
+      "Encode a matrix of observations into latent distributions."
       stopifnot(ncol(Xnew)==d)
       Xnew <- sweep(Xnew, 2, muHat) # Center
       Vnew <- EM.E(Xnew, WHat, sigSqHat)
       return(Vnew) # Stochastic encoder: contains Vmean and Vvar
     },
     decode = function(Vnew) {
+      "Decode points in the latent space into observations"
       stopifnot(ncol(Vnew)==k)
       Xrec <- tcrossprod(Vnew, WHat) + t(replicate(nrow(Vnew), muHat))
       return(Xrec) # Deterministic decoder, only contains mean because cov mat is big.
     },
     set_X = function(Xnew) {
+      "Sets X, updates mu. Does not opdate anything else so it is recommended to call update() or something. Be careful with this method."
       stopifnot(ncol(Xnew) == d)
       X <<- Xnew
       n <<- nrow(Xnew)
@@ -239,6 +274,7 @@ StpcaModel <- setRefClass("StpcaModel",
       invisible(.self)
     },
     crossvalidate = function(nFolds=3, nThreads=1) {
+      "Perform k-fold cross-validation (possibly multithreaded) to determine the held out log likelihood of examples. This could be used as an alternative to computing the approximate evidence in model selection."
       stopifnot(nFolds>=2)
       stopifnot(nThreads>0)
 

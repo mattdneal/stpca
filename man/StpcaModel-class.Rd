@@ -8,9 +8,84 @@
 \description{
 Structured PCA Model
 }
+\section{Fields}{
+
+\describe{
+\item{\code{X}}{The matrix of data}
+
+\item{\code{n}}{The number of samples}
+
+\item{\code{k}}{Latent dimensionality}
+
+\item{\code{d}}{Simensionality of observations}
+
+\item{\code{beta}}{Covariance function hyperparameters}
+
+\item{\code{K}}{covariance matrix generated from the covariance function and hyperparameters}
+
+\item{\code{KD}}{Partial derivatived of K w.r.t each of the hyperparameters}
+
+\item{\code{locs}}{Locations (t_i)}
+
+\item{\code{covFn}}{Covariance function}
+
+\item{\code{covFnD}}{Function giving partial derivatives of covariance function w.r.t hyperparameters}
+
+\item{\code{muHat}}{MAP estimate of mu}
+
+\item{\code{WHat}}{MAP estimate of W}
+
+\item{\code{sigSqHat}}{MAP estimate of sigSq}
+
+\item{\code{Vmean}}{The posterior mean of each latent variable}
+
+\item{\code{VVar}}{The posterior variance around each latent variable}
+
+\item{\code{logEvidence}}{log of the approximate evidence}
+
+\item{\code{logPosteriors}}{sequence of posteriors obtained in fitting. Un-normalised if sparse}
+
+\item{\code{logEvidenceD}}{Partial derivatives of evidence w.r.t hyperparameters}
+
+\item{\code{H}}{The precision matrix for the gaussian approximation to the posterior around each w}
+
+\item{\code{maxim}}{the maximisation object returned in hyperparameter tuning}
+
+\item{\code{thetaConv}}{Whether theta has been optimised to convergence (if false, beta has probably converged, not theta)}
+
+\item{\code{theta}}{betaHist history of betas in optimisation}
+
+\item{\code{convergence}}{History of logEvidence and logPosteror; used to assess convergence}
+
+\item{\code{sparse}}{whether this is a sparse stpca model}
+
+\item{\code{b}}{The sparsity hyperparameter in a sparse model.}
+}}
+
 \section{Methods}{
 
 \describe{
-\item{\code{update_beta(...)}}{Method docs go here}
+\item{\code{crossvalidate(nFolds = 3, nThreads = 1)}}{Perform k-fold cross-validation (possibly multithreaded) to determine the held out log likelihood of examples. This could be used as an alternative to computing the approximate evidence in model selection.}
+
+\item{\code{decode(Vnew)}}{Decode points in the latent space into observations}
+
+\item{\code{encode(Xnew)}}{Encode a matrix of observations into latent distributions.}
+
+\item{\code{set_b(bNew)}}{Setter for 'b'}
+
+\item{\code{set_beta(betaNew)}}{Sets beta to a new value, recomputes K, KD and H.}
+
+\item{\code{set_sparse(spNew, b)}}{Setter for 'sparse'}
+
+\item{\code{set_X(Xnew)}}{Sets X, updates mu. Does not opdate anything else so it is recommended to call update() or something. Be careful with this method.}
+
+\item{\code{simulate(n = 1, Wknown = TRUE)}}{Simulates new synthetic data from a fitted model.}
+
+\item{\code{update(tune.maxit = 10, tune.tol = 1e-05, EM.maxit = 500,
+  EM.bftol = 1e-05, ...)}}{The major method for performing inference. This iterates between updating theta (using update_theta) and updating beta (using update_beta).}
+
+\item{\code{update_beta(...)}}{Optimises the approximate evidence with respect to the hyperparameters.}
+
+\item{\code{update_theta(maxit = 500, bftol = 1e-05)}}{Finds the MAP theta using EM.}
 }}
 
