@@ -311,6 +311,7 @@ cov.RQ.beta0 <- function(X, locations, k) {
 #' @include synthesize-data.R
 cov.noisy.RQ.beta0 <- function(X, locations, k) {
   beta0SE = cov.noisy.SE.beta0(X, locations, k)
+  alpha0  = 2
   beta0   = c(beta0SE, "logalpha0"=log(alpha0))
   return(beta0)
 }
