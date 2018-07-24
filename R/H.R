@@ -22,15 +22,16 @@
 #' #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
 #' H.analytic = stpca:::compute_H(X, W, mu, sigSq, K)
 #' HsigSq.numeric = Matrix(numDeriv::hessian(function(sigSq_) {
-#'   -log_posterior(X, K, W, mu, sigSq_)
+#'   -(log_likelihood(X, W, mu, sigSq_) + log_prior(K, W))
 #' }, x=sigSq))
 #' stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
 #'                     tolerance=1e-8))
 #'
-#' Hmu.numeric = Matrix(numDeriv::hessian(function(mu_) {
-#'   -log_posterior(X, K, W, mu_, sigSq)
-#' }, x=mu))
-#' stopifnot(all.equal(H.analytic$mu, Hmu.numeric, tolerance=1e-6))
+#' Hmu.numeric = numDeriv::hessian(function(mu_) {
+#'   -log_likelihood(X, W, mu_, sigSq)
+#' }, x=mu)
+#' stopifnot(isTRUE(all.equal(unname(as.matrix(H.analytic$mu)),
+#'                            Hmu.numeric, tolerance=1e-6)))
 compute_H <- function(X, WHat, muHat, sigSqHat, K) {
   n = nrow(X)
   d = ncol(X)
@@ -78,7 +79,7 @@ compute_H <- function(X, WHat, muHat, sigSqHat, K) {
 #' Hw1.numeric  = Matrix(numDeriv::hessian(function(w) {
 #'   W_ = W
 #'   W_[,1] = w
-#'   -log_posterior(X, K, W_, mu, sigSq)
+#'   -(log_likelihood(X, W_, mu, sigSq) + log_prior(K, W_))
 #' }, x=W[,1]))
 #'
 #' stopifnot(all.equal(Hw1.analytic, Hw1.numeric))
