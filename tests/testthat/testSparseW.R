@@ -147,12 +147,12 @@ test_that("Coordiante descent always gives zero for very small b", {
 context("Creating high level sparse models")
 
 test_that("Sparse model can be created & tuned", {
-  sstpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, sparse=TRUE, b=0.1, maxit=100)
+  sstpca <- new("StpcaModel", X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, sparse=TRUE, b=0.1, maxit=100)
   expect_true(any(sstpca$WHat==0), is_true())
 })
 
 test_that("No hyperparameter updating for a sparse model", {
-  sstpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, sparse=TRUE, b=1, maxit=100)
+  sstpca <- new("StpcaModel", X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, sparse=TRUE, b=1, maxit=100)
   expect_error(sstpca$update())
 })
 

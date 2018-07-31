@@ -273,6 +273,16 @@ StpcaModel <- setRefClass("StpcaModel",
       muHat <<- colMeans(X)
       invisible(.self)
     },
+    set_locs = function(locsNew) {
+      "Sets the locations, and recomputes K. Be careful with this method. Does not update theta"
+      stopifnot(nrow(locsNew) == d)
+      locs <<- locsNew
+
+      thetaConv <<- TRUE # Set to TRUE so set_beta goes inside if statement
+      set_beta(beta)
+
+      invisible(.self)
+    },
     crossvalidate = function(nFolds=3, nThreads=1) {
       "Perform k-fold cross-validation (possibly multithreaded) to determine the held out log likelihood of examples. This could be used as an alternative to computing the approximate evidence in model selection."
       stopifnot(nFolds>=2)
