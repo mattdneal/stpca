@@ -18,7 +18,8 @@ Computationally cheap estimate for beta0 for cov.SE.
 }
 \examples{
 library(functional)
-n = 10; k = 4; dim=c(10, 10); kern=Curry(cov.SE, beta=log(c(2, 0.4)))
+n = 10; k = 4; dim=c(10, 10)
+kern = Curry(cov.noisy.SE, beta=log(c(2, 0.4, 0.1)))
 synth = synthesize_data_kern(n, k, dim, kern, noisesd=0.2)
 beta0 = cov.SE.beta0(synth$X, synth$grid, k)
 stopifnot(length(beta0) == 2)

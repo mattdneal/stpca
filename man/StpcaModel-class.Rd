@@ -75,6 +75,8 @@ Structured PCA Model
 
 \item{\code{set_beta(betaNew)}}{Sets beta to a new value, recomputes K, KD and H.}
 
+\item{\code{set_locs(locsNew)}}{Sets the locations, and recomputes K. Be careful with this method. Does not update theta}
+
 \item{\code{set_sparse(spNew, b)}}{Setter for 'sparse'}
 
 \item{\code{set_X(Xnew)}}{Sets X, updates mu. Does not opdate anything else so it is recommended to call update() or something. Be careful with this method.}
