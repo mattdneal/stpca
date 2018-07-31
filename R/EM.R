@@ -131,6 +131,7 @@ EM.M.W.sparse <- function(Xc, sigSq, Vmean, Vvar, colVmag, RtV, K, b, reldiff=1e
   # Useful variables
   n <- nrow(Xc)
   d <- ncol(Xc)
+  k <- ncol(Vmean)
   Kinv <- solve(K)
 
   converged <- FALSE
