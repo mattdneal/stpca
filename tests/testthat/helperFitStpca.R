@@ -20,7 +20,7 @@ Xc = sweep(X, 2, colMeans(X))
 
 beta0 = cov.noisy.SE.beta0(X, locs, k)
 
-stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, maxit=100)
+stpca <- new("StpcaModel", X, k, beta0, locs, cov.noisy.SE, cov.noisy.SE.d, maxit=100)
 
 #beta0 = log(c(1, 0.6, 0.6, 1e-3))
 #stpca <- StpcaModel$new(X, k, beta0, locs, cov.noisy.MR, cov.noisy.MR.d, maxit=50)
