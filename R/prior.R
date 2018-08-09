@@ -15,6 +15,7 @@ log_prior <- function(K, W, sigSq) {
 #' @return un-normalised log prior (numeric)
 #' @export
 log_prior_sigSq <- function(sigSq) {
+  stopifnot(is.finite(sigSq))
   stopifnot(sigSq>0)
   return(-log(sigSq))
 }
