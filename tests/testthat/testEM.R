@@ -48,7 +48,7 @@ test_that("sigma^2 maximisation stage increases complete log posterior to local 
   expect_lt(clpHess, 0)
 })
 
-test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local max", {
+test_that("Iterating Expectation and sigma^2 maximisation finds posterior local max", {
   Xc = sweep(stpca$X, 2, stpca$muHat)
   W  = stpca$WHat
   sigSq = exp(rnorm(1))
@@ -59,11 +59,11 @@ test_that("Iterating Expectation and sigma^2 maximisation finds likelihood local
   }
 
   llGrad = numDeriv::grad(function(sigSq_) {
-    log_likelihood(Xc, W, 0, sigSq_)
+    log_likelihood(Xc, W, 0, sigSq_) + log_prior(stpca$K, W, sigSq_)
   }, sigSq)[1]
 
   llHess = numDeriv::hessian(function(sigSq_) {
-    log_likelihood(Xc, W, 0, sigSq_)
+    log_likelihood(Xc, W, 0, sigSq_) + log_prior(stpca$K, W, sigSq_)
   }, sigSq)[1]
 
   # Zero gradient
@@ -107,7 +107,7 @@ test_that("Iterating Expectation and W maximisation finds zero gradient point in
 
   lpGrad = numDeriv::grad(function(W_) {
     log_likelihood(Xc, W_, 0, stpca$sigSqHat) +
-    log_prior(stpca$K, W_)
+    log_prior(stpca$K, W_, stpca$sigSqHat)
   }, W)
 
   expect_equal(lpGrad, rep(0, length(W)), tolerance=1e-6)
@@ -124,7 +124,7 @@ test_that("stpca$update_theta() finds the MAP theta for large maxit", {
   veclp = function(theta) {
     L = relist(theta, params)
     lp = log_likelihood(X, L$W, L$mu, L$sigSq) +
-         log_prior(stpcaUpTheta$K, L$W)
+         log_prior(stpcaUpTheta$K, L$W, L$sigSq)
     return(lp)
   }
 

@@ -22,7 +22,7 @@
 #' #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
 #' H.analytic = stpca:::compute_H(X, W, mu, sigSq, K)
 #' HsigSq.numeric = Matrix(numDeriv::hessian(function(sigSq_) {
-#'   -(log_likelihood(X, W, mu, sigSq_) + log_prior(K, W))
+#'   -(log_likelihood(X, W, mu, sigSq_) + log_prior(K, W, sigSq))
 #' }, x=sigSq))
 #' stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
 #'                     tolerance=1e-8))
@@ -79,7 +79,7 @@ compute_H <- function(X, WHat, muHat, sigSqHat, K) {
 #' Hw1.numeric  = Matrix(numDeriv::hessian(function(w) {
 #'   W_ = W
 #'   W_[,1] = w
-#'   -(log_likelihood(X, W_, mu, sigSq) + log_prior(K, W_))
+#'   -(log_likelihood(X, W_, mu, sigSq) + log_prior(K, W_, sigSq))
 #' }, x=W[,1]))
 #'
 #' stopifnot(all.equal(Hw1.analytic, Hw1.numeric))

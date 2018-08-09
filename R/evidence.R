@@ -1,8 +1,8 @@
 #' Compute the laplace approximation to the log evidence given the MAP
 #' parameters K, mu, sigSq as well as the prior covariance matrix K.
-#' Note that this is multiplied by an UN-KNOWN CONSTANT due to the flat
-#' priors over mu and sigSq. However, this unknown constant is always
-#' the same regardless of k and K, so this may be used to compute
+#' Note that this is multiplied by an UN-KNOWN CONSTANT due to the
+#' improper priors over mu and sigSq. However, this unknown constant is
+#' always the same regardless of k and K, so this may be used to compute
 #' meaningful bayes factors between StPCA models.
 #'
 #' @param X Data
@@ -21,7 +21,7 @@ log_evidence <- function(X, K, WHat, muHat, sigSqHat, H) {
 
   logLik = log_likelihood(X, WHat, muHat, sigSqHat)
 
-  logPrior = log_prior(K, WHat)
+  logPrior = log_prior(K, WHat, sigSqHat)
 
   logDetH = sum(vapply(H, function(Hblock) {
      as.numeric(determinant(Hblock, logarithm=TRUE)$modulus)

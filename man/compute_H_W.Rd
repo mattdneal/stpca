@@ -34,7 +34,7 @@ Hw1.analytic = stpca:::compute_H_W(X, W, mu, sigSq, K)[[1]]
 Hw1.numeric  = Matrix(numDeriv::hessian(function(w) {
   W_ = W
   W_[,1] = w
-  -(log_likelihood(X, W_, mu, sigSq) + log_prior(K, W_))
+  -(log_likelihood(X, W_, mu, sigSq) + log_prior(K, W_, sigSq))
 }, x=W[,1]))
 
 stopifnot(all.equal(Hw1.analytic, Hw1.numeric))

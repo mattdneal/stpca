@@ -12,7 +12,7 @@ test_that("Analytic H_{\\mu} is equal to numeric H_{\\mu}", {
   Hmu.analytic = unname(as.matrix(stpca$H$mu))
   Hmu.numeric = numDeriv::hessian(function(mu_) {
     -(log_likelihood(stpca$X, stpca$WHat, mu_, stpca$sigSqHat) +
-      log_prior(stpca$K, stpca$WHat))
+      log_prior(stpca$K, stpca$WHat, stpca$sigSqHat))
   }, x=stpca$muHat)
   expect_equal(Hmu.analytic, Hmu.numeric, tolerance=1e-6)
 })
@@ -24,7 +24,7 @@ test_that("Analytic H_{w_i} are all equal to numeric H_{w_i}", {
       W_ = stpca$WHat
       W_[,i] = wi
       -(log_likelihood(stpca$X, W_, stpca$muHat, stpca$sigSqHat) +
-        log_prior(stpca$K, W_))
+        log_prior(stpca$K, W_, stpca$sigSqHat))
     }, x=stpca$WHat[,i])
 
     expect_equal(as.matrix(Hwi.analytic), Hwi.numeric, tolerance=1e-5,

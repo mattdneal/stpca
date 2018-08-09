@@ -6,7 +6,7 @@ test_that("The gradient of the log prior wrt beta matches numerical approximatio
 
   grad.numeric = grad(function(beta_) {
     K = stpca$covFn(locs, beta=beta_)
-    log_prior(K, stpca$WHat)
+    log_prior(K, stpca$WHat, stpca$sigSqHat)
   }, x=stpca$beta)
 
   expect_equal(grad.analytic, grad.numeric)

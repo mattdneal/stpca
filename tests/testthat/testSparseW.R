@@ -19,28 +19,38 @@ test_that("Laplace function at 0 equals 1/(2b)", {
 })
 
 test_that("Sparse prior works in edge cases", {
+  b     <- 0.1
+  sigSq <- 0.8
+
   # 1x1 W
-  lsp <- log_sparse_prior(1, Matrix(1), 1)
+  lsp <- log_sparse_prior(Matrix(1), 1, sigSq, b)
   expect_scalar(lsp)
 
   # Test dx1 W (as vector)
-  lsp <- log_sparse_prior(rnorm(5), Diagonal(5), 2)
+  lsp <- log_sparse_prior(Diagonal(5), rnorm(5), sigSq, b)
   expect_scalar(lsp)
 
   # All zeroes
-  lsp <- log_sparse_prior(Matrix(0, nrow=10, ncol=5), Diagonal(10), 2)
+  lsp <- log_sparse_prior(Diagonal(10), Matrix(0, nrow=10, ncol=5), sigSq, b)
   expect_scalar(lsp)
 })
 
-test_that("Sparse prior errors correctly", {
-  expect_error(log_sparse_prior(stpca$W, stpca$K, -1))
+test_that("Sparse prior errors when expected", {
+  b <- 4
+  expect_true(is.finite(
+    log_sparse_prior(stpca$K, stpca$WHat, b, stpca$sigSqHat)
+  ))
+
+  expect_error(log_sparse_prior(stpca$K, stpca$WHat, stpca$sigSqHat, -1))
+  expect_error(log_sparse_prior(stpca$K, stpca$WHat, -1,             stpca$b))
+  expect_error(log_sparse_prior(stpca$WHat, stpca$K, stpca$sigSqHat, b))
 })
 
 test_that("Sparse posterior has expected W invariances", {
   W     <- stpcaUp$WHat
   sparseLP <- function(W) {
     log_likelihood(Xc, W, 0, stpcaUp$sigSqHat) +
-      log_sparse_prior(W, stpcaUp$K, 0.001)
+      log_sparse_prior(stpcaUp$K, W, stpcaUp$sigSqHat, 0.001)
   }
 
   lp1 <- sparseLP(W)
@@ -89,7 +99,7 @@ test_that("Every coordinate step increases log posterior", {
 
   f <- function(W) {
     (log_likelihood(Xc, W, 0, stpca$sigSqHat) +
-     log_sparse_prior(W, stpca$K, b))
+     log_sparse_prior(stpca$K, W, stpca$sigSqHat, b))
   }
 
   lp <- f(W)

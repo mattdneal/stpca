@@ -34,7 +34,7 @@ library(Matrix)
 #Test that the analytic hessian for mu & sigSq matches numerical Hessian.
 H.analytic = stpca:::compute_H(X, W, mu, sigSq, K)
 HsigSq.numeric = Matrix(numDeriv::hessian(function(sigSq_) {
-  -(log_likelihood(X, W, mu, sigSq_) + log_prior(K, W))
+  -(log_likelihood(X, W, mu, sigSq_) + log_prior(K, W, sigSq))
 }, x=sigSq))
 stopifnot(all.equal(H.analytic$sigSq, HsigSq.numeric,
                     tolerance=1e-8))

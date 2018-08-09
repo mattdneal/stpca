@@ -2,9 +2,10 @@
 % Please edit documentation in R/prior.R
 \name{log_prior}
 \alias{log_prior}
-\title{Calculate the *un-normalised* log prior for StPCA with given loadings matrix}
+\title{Calculate the *un-normalised* log prior (only in sigSq) for StPCA
+with the given loadings matrix}
 \usage{
-log_prior(K, W)
+log_prior(K, W, sigSq)
 }
 \arguments{
 \item{K}{Prior covariance matrix}
@@ -15,5 +16,6 @@ log_prior(K, W)
 un-normalised log prior (numeric)
 }
 \description{
-Calculate the *un-normalised* log prior for StPCA with given loadings matrix
+Calculate the *un-normalised* log prior (only in sigSq) for StPCA
+with the given loadings matrix
 }

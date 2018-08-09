@@ -44,48 +44,49 @@ test_that("The maximum of the likelihood is given by PPCA", {
   }
 })
 
-test_that("Prior matches simple analytical solution with W=0", {
+test_that("W prior matches simple analytical solution with W=0", {
   # W=0 means log prior is just 0.5*(log det 2*pi*K )
   W = matrix(0, nrow=d, ncol=k)
-  lpr = log_prior(stpca$K, W)
+  lpr = log_prior_W(stpca$K, W)
   logDetK = as.numeric(determinant(stpca$K, log=TRUE)$modulus)
   lpr.analytic = -0.5*k*(d*log(2*pi) + logDetK)
   expect_equal(lpr, lpr.analytic)
 })
 
 test_that("Prior matches simple analytical solution with K=I (dense)", {
-  # K = I means prior is just an independand normal on each element of W.
+  # K = I means W prior is just an independand normal on each element of W.
   K = diag(d)
   for (i in 1:10) {
     W = matrix(rnorm(d*k), nrow=d)
-    lpr = log_prior(K, W)
+    lpr = log_prior_W(K, W)
     lpr.analytic = -(d*k*log(2*pi) + sum(W^2))/2
     expect_equal(lpr, lpr.analytic)
   }
 })
 
 test_that("Prior matches simple analytical solution with K=I (sparse)", {
-  K = Matrix(diag(d)) # Test sparsity
+  K <- Matrix(diag(d)) # Test sparsity
   for (i in 1:10) {
-    W = matrix(rnorm(d*k), nrow=d)
-    lpr = log_prior(K, W)
-    lpr.analytic = -(d*k*log(2*pi) + sum(W^2))/2
+    b <- rnorm(1)^2
+    W <- matrix(rnorm(d*k), nrow=d)
+    lpr <- log_sparse_prior_W(K, W, b)
+    lpr.analytic <- -(d*k*log(2*pi) + sum(W^2))/2 + sum(dlaplace(W, b, logarithm=TRUE))
     expect_equal(lpr, lpr.analytic)
   }
 })
 
-test_that("Log prior matches a multivariate normal", {
+test_that("W prior matches a multivariate normal", {
   require(mvtnorm)
-  lp1 = log_prior(stpca$K, stpca$WHat)
+  lp1 = log_prior_W(stpca$K, stpca$WHat)
   lp2 = sum(dmvnorm(t(stpca$WHat), sigma=as.matrix(stpca$K), log=TRUE))
   expect_equal(lp1, lp2)
 })
 
-test_that("Prior integrates to 1 in 1d", {
+test_that("W prior integrates to 1 in 1d", {
   halfInt <- integrate(
     f = function(W) {
       vapply(W, function(w) {
-        exp(log_prior(1, w))
+        exp(log_prior_W(1, w))
       }, numeric(1))
     },
     lower = 0,

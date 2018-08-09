@@ -1,11 +1,36 @@
-#' Calculate the *un-normalised* log prior for StPCA with given loadings matrix
+#' Calculate the *un-normalised* log prior (only in sigSq) for StPCA
+#' with the given loadings matrix
 #'
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix
 #' @return un-normalised log prior (numeric)
 #' @export
-log_prior <- function(K, W) {
+log_prior <- function(K, W, sigSq) {
+  return(log_prior_W(K, W) + log_prior_sigSq(sigSq))
+}
+
+#' The improper prior over sigSq. Proportional to sigma^-2
+#'
+#' @param sigSq
+#' @return un-normalised log prior (numeric)
+#' @export
+log_prior_sigSq <- function(sigSq) {
+  stopifnot(sigSq>0)
+  return(-log(sigSq))
+}
+
+#' The proper prior over W.
+#' p(W) = \prod^k_{i=1} N(w_i | 0, K)
+#'
+#' @param K Prior covariance matrix
+#' @param W Loadings matrix
+#' @return normalised log prior (numeric)
+#' @export
+log_prior_W <- function(K, W) {
   W <- Matrix(W)
+  stopifnot(nrow(K) == ncol(K))
+  stopifnot(nrow(W) >= ncol(W))
+
   d = nrow(W)
   k = ncol(W)
 

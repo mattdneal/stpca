@@ -65,9 +65,9 @@ complete_log_posterior <- function(X, V, Vvar, W, mu, sigSq, K, sparse=FALSE, b=
 
   # log p(\theta | \beta)
   if (sparse) {
-    pr2 <- log_sparse_prior(W, K, b)
+    pr2 <- log_sparse_prior(K, W, sigSq, b)
   } else {
-    pr2 <- log_prior(K, W)
+    pr2 <- log_prior(K, W, sigSq)
   }
 
   # E[ log p(X | V, \theta) | V ]

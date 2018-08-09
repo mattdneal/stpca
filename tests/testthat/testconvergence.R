@@ -13,7 +13,7 @@ test_that("At convergence, the value of theta maximises the posterior", {
     mu     <- thetaList$mu
     sigSq  <- thetaList$sigSq
     (log_likelihood(stpcaUp$X, W, mu, sigSq) +
-     log_prior(stpcaUp$K, W))
+     log_prior(stpcaUp$K, W, sigSq))
   }
 
   thetaGrad = grad(theta_hat_condition, unlist(thetaHatList))

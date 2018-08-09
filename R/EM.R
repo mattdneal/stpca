@@ -35,7 +35,7 @@ theta_EM <- function(X, W, mu, sigSq, K, maxit=500, bftol=1e-5, sparse=FALSE, b=
     sigSq = EM.M.sigSq(Xc, W, E$Vmean, E$Vvar)
 
     # ln p(X | \theta) + ln p(\theta | \beta)
-    unNormedLPs[iter] = log_likelihood(Xc, W, 0, sigSq) + log_prior(K, W)
+    unNormedLPs[iter] = log_likelihood(Xc, W, 0, sigSq) + log_prior(K, W, sigSq)
 
     # If the log Bayes' Factor ratio is less than bftol then stop early:
     # log(p(theta^n | X) / p(theta^{n-1} | X)) < bftol
@@ -103,7 +103,7 @@ EM.M.sigSq <- function(Xc, W, Vmean, Vvar) {
     norm(Xc, 'F')^2 -
     2*sum(vapply(1:nrow(Xc), function(n_) Vmean[n_,] %*% crossprod(W, Xc[n_,]), numeric(1))) +
     sum(vapply(1:ncol(Xc), function(d_) W[d_,] %*% Reduce('+', Vvar) %*% W[d_,], numeric(1)))
-  )/(nrow(Xc)*ncol(Xc))
+  )/(nrow(Xc)*ncol(Xc) + 2)
   return(max(0, sigSqNew))
 }
 
@@ -135,19 +135,17 @@ EM.M.W.sparse <- function(Xc, sigSq, Vmean, Vvar, colVmag, RtV, K, b, reldiff=1e
   Kinv <- solve(K)
 
   converged <- FALSE
-  lp <- log_likelihood(Xc, W, 0, sigSq) + log_sparse_prior(W, K, b)
+  lp <- log_likelihood(Xc, W, 0, sigSq) + log_sparse_prior(K, W, sigSq, b)
   while (!converged) {
     for (m in seq_len(d)) {
       for (l in seq_len(k)) {
         W[m,l] <- w_coord_desc(Xc, l, m, W, sigSq, colVmag, RtV, K, b, Kinv)
       }
     }
-    lpNew <- log_likelihood(Xc, W, 0, sigSq) + log_sparse_prior(W, K, b)
+    lpNew <- log_likelihood(Xc, W, 0, sigSq) + log_sparse_prior(K, W, sigSq, b)
     converged <- (lpNew - lp < reldiff)
     lp <- lpNew
   }
-
-  
 
   return(W)
 }
