@@ -12,5 +12,5 @@ soft_threshold(x, threshold)
 \item{threshold}{the threshold lambda}
 }
 \description{
-The soft-thresholding operator S_\lambda(x) = sign(x)(abs(x) - \lambda)_+
+The soft-thresholding operator S_\\lambda(x) = sign(x)(abs(x) - \\lambda)_+
 }

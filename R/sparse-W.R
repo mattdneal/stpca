@@ -4,7 +4,7 @@
 
 #' Soft-thresholding operator.
 #'
-#' The soft-thresholding operator S_\lambda(x) = sign(x)(abs(x) - \lambda)_+
+#' The soft-thresholding operator S_\\lambda(x) = sign(x)(abs(x) - \\lambda)_+
 #'
 #' @param x the vector/matrix of values to be soft thresholded
 #' @param threshold the threshold lambda
@@ -49,8 +49,8 @@ log_sparse_prior <- function(K, W, sigSq, b) {
 
 #' The *un-normalised* prior over W in SpStPCA. This is a product of
 #' the StPCA Gaussian prior and an iid Laplace prior.
-#' p(W | beta, b) = \prod^k_{i=1} N(w_i | 0, K) *
-#'                  \prod^{d}_{i=1} \prod^{k}_{j=1} Laplace(W_ij | 0, b)
+#' p(W | beta, b) = \\prod^k_{i=1} N(w_i | 0, K) *
+#'                  \\prod^{d}_{i=1} \\prod^{k}_{j=1} Laplace(W_ij | 0, b)
 #'
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix

@@ -4,8 +4,8 @@
 \alias{log_sparse_prior_W}
 \title{The *un-normalised* prior over W in SpStPCA. This is a product of
 the StPCA Gaussian prior and an iid Laplace prior.
-p(W | beta, b) = \prod^k_{i=1} N(w_i | 0, K) *
-                 \prod^{d}_{i=1} \prod^{k}_{j=1} Laplace(W_ij | 0, b)}
+p(W | beta, b) = \\prod^k_{i=1} N(w_i | 0, K) *
+                 \\prod^{d}_{i=1} \\prod^{k}_{j=1} Laplace(W_ij | 0, b)}
 \usage{
 log_sparse_prior_W(K, W, b)
 }
@@ -22,6 +22,6 @@ un-normalised log prior over W
 \description{
 The *un-normalised* prior over W in SpStPCA. This is a product of
 the StPCA Gaussian prior and an iid Laplace prior.
-p(W | beta, b) = \prod^k_{i=1} N(w_i | 0, K) *
-                 \prod^{d}_{i=1} \prod^{k}_{j=1} Laplace(W_ij | 0, b)
+p(W | beta, b) = \\prod^k_{i=1} N(w_i | 0, K) *
+                 \\prod^{d}_{i=1} \\prod^{k}_{j=1} Laplace(W_ij | 0, b)
 }

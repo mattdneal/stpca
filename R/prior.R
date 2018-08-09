@@ -21,7 +21,7 @@ log_prior_sigSq <- function(sigSq) {
 }
 
 #' The proper prior over W.
-#' p(W) = \prod^k_{i=1} N(w_i | 0, K)
+#' p(W) = \\prod^k_{i=1} N(w_i | 0, K)
 #'
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix

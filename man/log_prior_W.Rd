@@ -3,7 +3,7 @@
 \name{log_prior_W}
 \alias{log_prior_W}
 \title{The proper prior over W.
-p(W) = \prod^k_{i=1} N(w_i | 0, K)}
+p(W) = \\prod^k_{i=1} N(w_i | 0, K)}
 \usage{
 log_prior_W(K, W)
 }
@@ -17,5 +17,5 @@ normalised log prior (numeric)
 }
 \description{
 The proper prior over W.
-p(W) = \prod^k_{i=1} N(w_i | 0, K)
+p(W) = \\prod^k_{i=1} N(w_i | 0, K)
 }
