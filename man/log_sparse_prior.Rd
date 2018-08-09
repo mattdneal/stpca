@@ -3,7 +3,7 @@
 \name{log_sparse_prior}
 \alias{log_sparse_prior}
 \title{The *un-normalised* prior over W, sigma^2 in SpStPCA. A product of
-the proper, un-normalised p(W | \beta), and the improper p(sigma^2).}
+the proper, un-normalised p(W | \\beta), and the improper p(sigma^2).}
 \usage{
 log_sparse_prior(K, W, sigSq, b)
 }
@@ -21,5 +21,5 @@ un-normalised log prior over W
 }
 \description{
 The *un-normalised* prior over W, sigma^2 in SpStPCA. A product of
-the proper, un-normalised p(W | \beta), and the improper p(sigma^2).
+the proper, un-normalised p(W | \\beta), and the improper p(sigma^2).
 }

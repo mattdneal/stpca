@@ -35,7 +35,7 @@ dlaplace <- function(x, b, logarithm=FALSE) {
 }
 
 #' The *un-normalised* prior over W, sigma^2 in SpStPCA. A product of
-#' the proper, un-normalised p(W | \beta), and the improper p(sigma^2).
+#' the proper, un-normalised p(W | \\beta), and the improper p(sigma^2).
 #'
 #' @param K Prior covariance matrix
 #' @param W Loadings matrix
@@ -49,7 +49,7 @@ log_sparse_prior <- function(K, W, sigSq, b) {
 
 #' The *un-normalised* prior over W in SpStPCA. This is a product of
 #' the StPCA Gaussian prior and an iid Laplace prior.
-#' p(W | beta, b) = \\prod^k_{i=1} N(w_i | 0, K) *
+#' p(W | \\beta, b) = \\prod^k_{i=1} N(w_i | 0, K) *
 #'                  \\prod^{d}_{i=1} \\prod^{k}_{j=1} Laplace(W_ij | 0, b)
 #'
 #' @param K Prior covariance matrix
