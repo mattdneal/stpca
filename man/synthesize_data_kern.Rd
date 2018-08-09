@@ -13,7 +13,7 @@ synthesize_data_kern(n, k, dim, kern, noisesd = 0)
 
 \item{dim}{dimensions of grid to construct}
 
-\item{kern}{cvarinace function used to build the prior covariance matrix K}
+\item{kern}{covarinace function used to build the prior covariance matrix K}
 
 \item{noisesd}{standard deviation of noise added to data}
 }

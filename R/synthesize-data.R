@@ -27,7 +27,7 @@ synthesize_data <- function(n, k, K, noisesd=0) {
 #' @param n Number of samples to create
 #' @param k Latent dimensionality
 #' @param dim dimensions of grid to construct
-#' @param kern cvarinace function used to build the prior covariance matrix K
+#' @param kern covarinace function used to build the prior covariance matrix K
 #' @param noisesd standard deviation of noise added to data
 #' @import fields
 synthesize_data_kern <- function(n, k, dim, kern, noisesd=0) {
