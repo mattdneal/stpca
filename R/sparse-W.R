@@ -2,6 +2,12 @@
 # The style is a little different because it is a lot newer than all
 # the other R code and I've since read the Adv. R style guide.
 
+#' Soft-thresholding operator.
+#'
+#' The soft-thresholding operator S_\lambda(x) = sign(x)(abs(x) - \lambda)_+
+#'
+#' @param x the vector/matrix of values to be soft thresholded
+#' @param threshold the threshold lambda
 soft_threshold <- function(x, threshold) {
   stopifnot(threshold>=0)
   pmax(abs(x)-threshold, 0)*sign(x)
