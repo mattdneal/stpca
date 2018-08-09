@@ -187,7 +187,7 @@ StpcaModel <- setRefClass("StpcaModel",
         logEvidenceD <<- log_evidence_d(X, K, WHat, muHat,
                                         sigSqHat, beta, KD, H)
         logPosteriors <<- log_likelihood(X, WHat, muHat, sigSqHat) +
-                          log_prior(K, WHat, sigSq) - logEvidence
+                          log_prior(K, WHat, sigSqHat) - logEvidence
       }
       invisible(.self)
     },
