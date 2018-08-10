@@ -27,9 +27,18 @@ w_coord_desc <- function(Xc, l, m, W, sigSq, colVmag, RtV, K, b, Kinv=NULL) {
   )
 }
 
-dlaplace <- function(x, b, logarithm=FALSE) {
+#' Density of the Laplace distribution
+#'
+#' Returns the density Laplace(x | \\mu, b)
+#'
+#' @param x vector of quantiles
+#' @param mu location, scalar
+#' @param b scale, positive
+#' @param logarithm logical; if TRUE, probabilities p are given as log(p)
+#' @export
+dlaplace <- function(x, mu=0, b=1, logarithm=FALSE) {
   stopifnot(b>0)
-  val <- -abs(x)/b - log(2*b)
+  val <- -abs(x - mu)/b - log(2*b)
   if (!logarithm) {val <- exp(val)}
   return(val)
 }
@@ -65,6 +74,6 @@ log_sparse_prior_W <- function(K, W, b) {
 
   stopifnot(nrow(W) >= ncol(W))
   normPart <- log_prior_W(K, W)
-  laplacePart <- sum(dlaplace(W, b, logarithm=TRUE))
+  laplacePart <- sum(dlaplace(W, b=b, logarithm=TRUE))
   return(normPart + laplacePart)
 }
