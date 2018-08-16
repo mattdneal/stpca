@@ -1,6 +1,6 @@
 Package: stpca
 Title: Structured PCA
-Version: 0.1
+Version: 1.0
 Author: Jim Skinner <j.r.skinner@warwick.ac.uk>
 Maintainer: Jim Skinner <j.r.skinner@warwick.ac.uk>
 Authors@R: person("Jim", "Skinner", email = "j.r.skinner@warwick.ac.uk",
